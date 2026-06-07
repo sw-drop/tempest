@@ -110,15 +110,6 @@
                     <h4>Safety Violations</h4>
                     <ul id="warnings-list"></ul>
                 </div>
-
-                <!-- Night Conditions Forecast (Dynamic Timeline) -->
-                <div class="forecast-section" id="forecast-section">
-                    <h4 id="forecast-header">Night Conditions Forecast</h4>
-                    <div class="forecast-timeline" id="forecast-timeline">
-                        <!-- Populated by index.js -->
-                        <div class="forecast-loading">Waiting for observation data...</div>
-                    </div>
-                </div>
             </section>
 
             <!-- Right Panel: Wind Dynamics -->
@@ -161,6 +152,15 @@
                                 <span class="lbl">Direction</span>
                             </div>
                         </div>
+                    </div>
+                </div>
+
+                <!-- Night Conditions Forecast (Vertical List) -->
+                <div class="forecast-section" id="forecast-section">
+                    <h4 id="forecast-header">Night Forecast</h4>
+                    <div class="forecast-vertical" id="forecast-timeline">
+                        <!-- Populated by index.js -->
+                        <div class="forecast-loading">Waiting for observation data...</div>
                     </div>
                 </div>
             </section>

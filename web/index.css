@@ -470,8 +470,8 @@ body {
 .compass-needle {
     position: absolute;
     top: 15%;
-    left: 48%;
-    width: 2px;
+    left: calc(50% - 2px);
+    width: 4px;
     height: 70%;
     background: linear-gradient(to bottom, var(--color-blue) 50%, rgba(255,255,255,0.05) 50%);
     transform-origin: 50% 50%;
@@ -483,10 +483,10 @@ body {
 .compass-needle::before {
     content: '';
     position: absolute;
-    top: -4px;
-    left: -2px;
-    width: 6px;
-    height: 6px;
+    top: -8px;
+    left: -3px;
+    width: 10px;
+    height: 8px;
     background: var(--color-blue);
     clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
 }
@@ -561,73 +561,60 @@ body {
     margin-bottom: 0.6rem;
 }
 
-.forecast-timeline {
-    display: flex;
-    gap: 0.5rem;
-    overflow-x: auto;
-    padding-bottom: 0.5rem;
-    scrollbar-width: thin;
-    scrollbar-color: var(--glass-highlight) transparent;
-}
-
-.forecast-timeline::-webkit-scrollbar {
-    height: 4px;
-}
-.forecast-timeline::-webkit-scrollbar-track {
-    background: transparent;
-}
-.forecast-timeline::-webkit-scrollbar-thumb {
-    background-color: var(--glass-border);
-    border-radius: 4px;
-}
-.forecast-timeline::-webkit-scrollbar-thumb:hover {
-    background-color: var(--glass-highlight);
-}
-
-.forecast-item {
-    flex: 0 0 85px;
-    background: rgba(255, 255, 255, 0.015);
-    border: 1px solid rgba(255, 255, 255, 0.03);
-    border-radius: 10px;
-    padding: 0.5rem;
+.forecast-vertical {
     display: flex;
     flex-direction: column;
+    gap: 0.35rem;
+}
+
+.forecast-row {
+    display: flex;
     align-items: center;
-    gap: 0.3rem;
-    text-align: center;
+    justify-content: space-between;
+    background: rgba(255, 255, 255, 0.015);
+    border: 1px solid rgba(255, 255, 255, 0.03);
+    border-radius: 8px;
+    padding: 0.35rem 0.6rem;
     transition: var(--transition-smooth);
 }
 
-.forecast-item:hover {
+.forecast-row:hover {
     background: rgba(255, 255, 255, 0.04);
     border-color: var(--glass-highlight);
 }
 
-.forecast-item .fc-time {
-    font-size: 0.72rem;
+.forecast-row .fc-time {
+    font-size: 0.75rem;
     color: var(--text-secondary);
     font-weight: 600;
+    width: 65px;
+    text-align: left;
 }
 
-.forecast-item .fc-icon {
-    font-size: 1.4rem;
-    margin: 0.1rem 0;
+.forecast-row .fc-icon {
+    font-size: 1.1rem;
+    width: 30px;
+    text-align: center;
 }
 
-.forecast-item .fc-cloud {
-    font-size: 0.75rem;
+.forecast-row .fc-cloud {
+    font-size: 0.78rem;
     font-weight: 700;
     color: var(--color-blue);
+    width: 45px;
+    text-align: right;
 }
 
-.forecast-item .fc-cloud.cloud-unsafe {
+.forecast-row .fc-cloud.cloud-unsafe {
     color: var(--color-red);
 }
 
-.forecast-item .fc-temp {
-    font-size: 0.75rem;
+.forecast-row .fc-temp {
+    font-size: 0.78rem;
     color: #fff;
     font-weight: 500;
+    width: 55px;
+    text-align: right;
 }
 
 .forecast-loading {

@@ -171,7 +171,21 @@ function updateDashboard() {
     const lastFetched = currentData.last_fetched;
     if (lastFetched) {
         const date = new Date(lastFetched * 1000);
-        lastUpdateEl.textContent = `Last fetch: ${date.toLocaleTimeString()} (${date.toLocaleDateString()})`;
+        const tz = (currentData.raw && currentData.raw.timezone) || 'America/Chicago';
+        const localTimeStr = new Intl.DateTimeFormat([], {
+            hour: 'numeric',
+            minute: '2-digit',
+            second: '2-digit',
+            timeZone: tz,
+            timeZoneName: 'short'
+        }).format(date);
+        const localDateStr = new Intl.DateTimeFormat([], {
+            year: 'numeric',
+            month: 'numeric',
+            day: 'numeric',
+            timeZone: tz
+        }).format(date);
+        lastUpdateEl.textContent = `Last fetch: ${localTimeStr} (${localDateStr})`;
     }
 
     const proc = currentData.processed || {};
@@ -311,27 +325,32 @@ function updateDashboard() {
     precipEl.textContent = metrics.precip_in !== null ? metrics.precip_in.toFixed(3) : '--';
     lightningEl.textContent = `Storms: ${metrics.lightning_count_1h !== null ? metrics.lightning_count_1h : '--'} strikes`;
 
-    // 5. Update Night Conditions Forecast Timeline
+    // 5. Update Night Conditions Forecast (Local Observatory Time & Vertical Layout)
     const nightForecast = proc.night_forecast || [];
     
     if (daytimeStatus === 'daytime') {
-        forecastHeader.textContent = "Observing Night Forecast (Upcoming)";
+        forecastHeader.textContent = "Night Forecast (Upcoming)";
     } else {
-        forecastHeader.textContent = "Observing Night Forecast (Remaining)";
+        forecastHeader.textContent = "Night Forecast (Remaining)";
     }
 
     if (nightForecast && nightForecast.length > 0) {
         forecastTimeline.innerHTML = '';
+        const tz = (currentData.raw && currentData.raw.timezone) || 'America/Chicago';
         nightForecast.forEach(item => {
             const date = new Date(item.timestamp * 1000);
-            const timeStr = date.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+            const timeStr = new Intl.DateTimeFormat([], {
+                hour: 'numeric',
+                minute: '2-digit',
+                timeZone: tz
+            }).format(date);
             
             const tempStr = tempUnit === 'C' ? `${item.temp_c.toFixed(1)}°C` : `${item.temp_f.toFixed(1)}°F`;
             const emoji = getSymbolEmoji(item.symbol_code);
             const isCloudUnsafe = item.cloud > 60;
 
             const itemDiv = document.createElement('div');
-            itemDiv.className = 'forecast-item';
+            itemDiv.className = 'forecast-row';
             itemDiv.innerHTML = `
                 <span class="fc-time">${timeStr}</span>
                 <span class="fc-icon" title="${item.symbol_code}">${emoji}</span>
