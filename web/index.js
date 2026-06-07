@@ -4,6 +4,7 @@ let pollInterval = 60;
 let nextPollSeconds = pollInterval;
 let timerId = null;
 let currentData = null; // Cache the latest observations
+let astrosphericInitialized = false;
 
 // Local Settings from Storage (persisted)
 let tempUnit = localStorage.getItem('temp_unit') || 'C'; // 'C' or 'F'
@@ -117,6 +118,19 @@ function getSymbolEmoji(symbolCode) {
     return '☁️';
 }
 
+// Initialize Astrospheric Embed
+function initAstrospheric(lat, lon) {
+    if (astrosphericInitialized) return;
+    if (lat && lon && typeof m_AstrosphericEmbed !== 'undefined') {
+        try {
+            m_AstrosphericEmbed.Create("AstrosphericEmbedContainer", lat, lon);
+            astrosphericInitialized = true;
+        } catch (e) {
+            console.error("Error creating Astrospheric embed:", e);
+        }
+    }
+}
+
 // Fetch observations
 async function fetchWeather() {
     if (document.hidden) return;
@@ -160,6 +174,11 @@ function setBannerError(message) {
 // Render Dashboard based on selected units
 function updateDashboard() {
     if (!currentData) return;
+
+    // Initialize Astrospheric embed once coordinates are available
+    if (currentData.raw && currentData.raw.latitude && currentData.raw.longitude) {
+        initAstrospheric(currentData.raw.latitude, currentData.raw.longitude);
+    }
 
     // 1. Header Information
     stationNameEl.textContent = currentData.station_name || `ID: ${currentData.station_id}`;
@@ -288,15 +307,28 @@ function updateDashboard() {
     dewPointEl.textContent = formatTemp(metrics.dew_point_c, metrics.dew_point_f);
     
     const dpMarginVal = tempUnit === 'C' ? metrics.dew_point_margin_c : metrics.dew_point_margin_f;
+    const dpMarginPill = document.getElementById('dp-margin-pill');
     if (dpMarginVal !== null && dpMarginVal !== undefined) {
         dpMarginEl.textContent = `${dpMarginVal.toFixed(1)}°${tempUnit}`;
         const isSafe = tempUnit === 'C' ? dpMarginVal >= 1.67 : dpMarginVal >= 3.0;
         dpMarginStatusEl.textContent = isSafe ? 'Safe' : 'Risk';
-        dpMarginStatusEl.style.color = isSafe ? '#10b981' : '#ef4444';
+        if (isSafe) {
+            dpMarginPill.style.color = '#10b981';
+            dpMarginPill.style.borderColor = 'rgba(16, 185, 129, 0.2)';
+            dpMarginPill.style.background = 'rgba(16, 185, 129, 0.05)';
+        } else {
+            dpMarginPill.style.color = '#ef4444';
+            dpMarginPill.style.borderColor = 'rgba(239, 68, 68, 0.2)';
+            dpMarginPill.style.background = 'rgba(239, 68, 68, 0.05)';
+        }
     } else {
         dpMarginEl.textContent = '--';
         dpMarginStatusEl.textContent = '--';
-        dpMarginStatusEl.style.color = 'inherit';
+        if (dpMarginPill) {
+            dpMarginPill.style.color = 'inherit';
+            dpMarginPill.style.borderColor = 'var(--glass-border)';
+            dpMarginPill.style.background = 'rgba(255, 255, 255, 0.02)';
+        }
     }
 
     // Wind Dynamics Card
@@ -329,9 +361,9 @@ function updateDashboard() {
     const nightForecast = proc.night_forecast || [];
     
     if (daytimeStatus === 'daytime') {
-        forecastHeader.textContent = "Night Forecast (Upcoming)";
+        forecastHeader.textContent = "yr.no Night Forecast (Upcoming)";
     } else {
-        forecastHeader.textContent = "Night Forecast (Remaining)";
+        forecastHeader.textContent = "yr.no Night Forecast (Remaining)";
     }
 
     if (nightForecast && nightForecast.length > 0) {

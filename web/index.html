@@ -10,6 +10,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <!-- CSS Stylesheet -->
     <link rel="stylesheet" href="index.css">
+    <!-- Astrospheric API Reference -->
+    <script type="text/javascript" src="https://astrosphericcloudstorage.blob.core.windows.net/embed/astrosphericembed.js"></script>
 </head>
 <body>
     <div class="background-decor decor-1"></div>
@@ -192,8 +194,10 @@
                 </div>
                 <div class="metric-body">
                     <span class="label">Dew Point &amp; Margin</span>
-                    <span class="value" id="dew-point-val">--&deg;C</span>
-                    <span class="subtext">Margin: <span id="dp-margin-val" style="font-weight: 700;">--</span> (<span id="dp-margin-status">--</span>)</span>
+                    <div style="display: flex; align-items: baseline; gap: 0.6rem; flex-wrap: wrap; margin-top: 0.15rem;">
+                        <span class="value" id="dew-point-val" style="margin-top: 0;">--&deg;C</span>
+                        <span id="dp-margin-pill" style="font-size: 0.82rem; font-weight: 700; padding: 0.15rem 0.5rem; border-radius: 6px; border: 1px solid var(--glass-border); transition: var(--transition-smooth); background: rgba(255,255,255,0.02); line-height: 1.2;">Margin: <span id="dp-margin-val">--</span> (<span id="dp-margin-status">--</span>)</span>
+                    </div>
                 </div>
             </section>
 
@@ -239,11 +243,18 @@
 
             <!-- Night Conditions Forecast (Across the page table) -->
             <section class="card forecast-card">
-                <h3 id="forecast-header">Night Forecast</h3>
-                <p class="card-desc">Observing night forecast window (1 hour before sunset to 1 hour after sunrise) modeling cloud cover and temperatures.</p>
+                <h3 id="forecast-header" style="margin-bottom: 0.8rem;">yr.no Night Forecast</h3>
                 <div class="forecast-table-wrapper" id="forecast-timeline">
                     <!-- Populated dynamically by index.js -->
                     <div class="forecast-loading">Waiting for observation data...</div>
+                </div>
+
+                <!-- Astrospheric Forecast Section -->
+                <div class="astrospheric-section" style="margin-top: 1.5rem; padding-top: 1.2rem; border-top: 1px solid var(--glass-border);">
+                    <h3 style="margin-bottom: 0.8rem;">Astrospheric Forecast</h3>
+                    <div id="AstrosphericEmbedContainer" style="width: 100%; max-width: 924px; margin: 0 auto; border-radius: 8px; overflow: hidden; border: 1px solid var(--glass-border); background: rgba(0,0,0,0.15);">
+                        <div class="forecast-loading">Initializing Astrospheric embed...</div>
+                    </div>
                 </div>
             </section>
         </main>
