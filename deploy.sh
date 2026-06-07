@@ -30,7 +30,7 @@ echo "Step 2: Syncing and deploying to Eadu..."
 echo "=================================================="
 
 # Run the python deployment script
-python deploy_tempest.py
+python3 deploy_tempest.py
 
 echo ""
 echo "=================================================="
