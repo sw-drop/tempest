@@ -123,6 +123,11 @@ function initAstrospheric(lat, lon) {
     if (astrosphericInitialized) return;
     if (lat && lon && typeof m_AstrosphericEmbed !== 'undefined') {
         try {
+            // Override the default viewport visibility check so the iframe loads immediately 
+            // even when located below the initial screen fold (no scroll required).
+            m_AstrosphericEmbed.isElementInViewport = function(el) {
+                return true;
+            };
             m_AstrosphericEmbed.Create("AstrosphericEmbedContainer", lat, lon);
             astrosphericInitialized = true;
         } catch (e) {
@@ -130,6 +135,7 @@ function initAstrospheric(lat, lon) {
         }
     }
 }
+
 
 // Fetch observations
 async function fetchWeather() {
