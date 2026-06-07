@@ -46,14 +46,20 @@
 
         <!-- Main Status: Roof Open Safety Allowed -->
         <section id="roof-status-banner" class="roof-banner status-pending">
-            <div class="banner-icon">
-                <svg id="roof-icon" viewBox="0 0 24 24" width="28" height="28">
-                    <path fill="currentColor" d="M19,20H5V12H19M19,10H5L12,5L19,10M12,3L1,11V22H23V11L12,3Z" />
-                </svg>
+            <div class="banner-left" style="display: flex; align-items: center; gap: 1.2rem; flex: 1;">
+                <div class="banner-icon">
+                    <svg id="roof-icon" viewBox="0 0 24 24" width="28" height="28">
+                        <path fill="currentColor" d="M19,20H5V12H19M19,10H5L12,5L19,10M12,3L1,11V22H23V11L12,3Z" />
+                    </svg>
+                </div>
+                <div class="banner-text">
+                    <h2 id="roof-status-title">EVALUATING SAFETY RULES...</h2>
+                    <p id="roof-status-desc">Fetching current observations from Tempest weather station...</p>
+                </div>
             </div>
-            <div class="banner-text">
-                <h2 id="roof-status-title">EVALUATING SAFETY RULES...</h2>
-                <p id="roof-status-desc">Fetching current observations from Tempest weather station...</p>
+            <div class="banner-right" style="font-size: 0.75rem; color: var(--text-secondary); border-left: 1px solid var(--glass-border); padding-left: 1rem; line-height: 1.4; max-width: 380px; transition: var(--transition-smooth);">
+                <strong>Roof Open:</strong> Weather permitting, we schedule the roofs to open around 15 minutes before sunset.<br>
+                <strong>Roof Close:</strong> Roofs are scheduled to close around 5 minutes after sunrise.
             </div>
         </section>
 

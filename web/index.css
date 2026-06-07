@@ -165,6 +165,25 @@ body {
     transition: var(--transition-smooth);
 }
 
+@media (max-width: 768px) {
+    .roof-banner {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.8rem;
+    }
+    .roof-banner .banner-left {
+        width: 100%;
+    }
+    .roof-banner .banner-right {
+        border-left: none !important;
+        padding-left: 0 !important;
+        border-top: 1px solid var(--glass-border);
+        padding-top: 0.6rem;
+        width: 100%;
+        max-width: 100% !important;
+    }
+}
+
 .banner-icon {
     display: flex;
     align-items: center;
