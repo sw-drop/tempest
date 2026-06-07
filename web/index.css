@@ -1,0 +1,595 @@
+/* Root Custom Properties */
+:root {
+    --bg-dark: #080710;
+    --bg-slate: #111022;
+    --glass-bg: rgba(255, 255, 255, 0.04);
+    --glass-border: rgba(255, 255, 255, 0.07);
+    --glass-highlight: rgba(255, 255, 255, 0.12);
+    
+    --text-primary: #f3f4f6;
+    --text-secondary: #9ca3af;
+    --text-muted: #6b7280;
+    
+    --color-green: #10b981;
+    --color-green-glow: rgba(16, 185, 129, 0.25);
+    
+    --color-red: #ef4444;
+    --color-red-glow: rgba(239, 68, 68, 0.25);
+    
+    --color-blue: #00d2fc;
+    --transition-smooth: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Base Resets & Typography */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    background-color: var(--bg-dark);
+    color: var(--text-primary);
+    font-family: 'Outfit', sans-serif;
+    min-height: 100vh;
+    position: relative;
+    padding: 1rem;
+}
+
+/* Background Glowing Orbs */
+.background-decor {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(100px);
+    z-index: -1;
+    opacity: 0.12;
+    pointer-events: none;
+}
+
+.decor-1 { width: 300px; height: 300px; background: #6366f1; top: -50px; left: -50px; }
+.decor-2 { width: 400px; height: 400px; background: #a855f7; bottom: -100px; right: -50px; }
+.decor-3 { width: 200px; height: 200px; background: #00d2fc; top: 30%; left: 70%; }
+
+/* Layout Container */
+.dashboard-container {
+    max-width: 1100px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+}
+
+/* Header */
+.dashboard-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.8rem;
+    padding-bottom: 0.4rem;
+    border-bottom: 1px solid var(--glass-border);
+}
+
+.dashboard-header h1 {
+    font-size: 1.8rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    background: linear-gradient(135deg, #fff 40%, #a5b4fc 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.dashboard-header .subtitle {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    font-weight: 400;
+}
+
+.header-right {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+}
+
+/* Toggle Buttons */
+.temp-toggle, .wind-toggle {
+    display: flex;
+    background: rgba(0, 0, 0, 0.4);
+    padding: 2px;
+    border-radius: 8px;
+    border: 1px solid var(--glass-border);
+}
+
+.toggle-btn {
+    background: transparent;
+    border: none;
+    color: var(--text-secondary);
+    padding: 0.2rem 0.5rem;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: inherit;
+    transition: var(--transition-smooth);
+}
+
+.toggle-btn.active {
+    background: var(--glass-highlight);
+    color: #fff;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+}
+
+.toggle-btn:hover:not(.active) {
+    color: #fff;
+    background: rgba(255, 255, 255, 0.03);
+}
+
+.station-badge, .status-poll {
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    padding: 0.4rem 0.8rem;
+    border-radius: 10px;
+    font-size: 0.8rem;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.station-badge .station-label { color: var(--text-muted); }
+.station-badge .station-val { font-weight: 600; }
+.status-poll { color: var(--text-secondary); }
+
+.pulse-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background-color: var(--color-green);
+    box-shadow: 0 0 6px var(--color-green);
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+    70% { transform: scale(1); box-shadow: 0 0 0 4px rgba(16, 185, 129, 0); }
+    100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+}
+
+/* Roof Banner */
+.roof-banner {
+    display: flex;
+    align-items: center;
+    gap: 1.2rem;
+    padding: 0.8rem 1.2rem;
+    border-radius: 12px;
+    border: 1px solid var(--glass-border);
+    transition: var(--transition-smooth);
+}
+
+.banner-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.04);
+}
+
+.banner-text h2 {
+    font-size: 1.1rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+}
+
+.banner-text p {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+}
+
+/* Banner States */
+.status-pending { background: rgba(255, 255, 255, 0.02); border-color: var(--glass-border); }
+.status-allowed {
+    background: rgba(16, 185, 129, 0.05);
+    border-color: rgba(16, 185, 129, 0.2);
+    box-shadow: 0 0 20px rgba(16, 185, 129, 0.08);
+}
+.status-allowed .banner-icon {
+    background: rgba(16, 185, 129, 0.12);
+    color: var(--color-green);
+}
+.status-allowed h2 { color: var(--color-green); }
+
+.status-warning {
+    background: rgba(239, 68, 68, 0.05);
+    border-color: rgba(239, 68, 68, 0.2);
+    box-shadow: 0 0 20px rgba(239, 68, 68, 0.08);
+}
+.status-warning .banner-icon {
+    background: rgba(239, 68, 68, 0.12);
+    color: var(--color-red);
+}
+.status-warning h2 { color: var(--color-red); }
+
+/* Dashboard Grid Layout (Denser 3-Column setup) */
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.8rem;
+}
+
+/* Cards (Denser Glassmorphism) */
+.card {
+    background: var(--glass-bg);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--glass-border);
+    border-radius: 12px;
+    padding: 1rem;
+    transition: var(--transition-smooth);
+    box-shadow: 0 4px 20px 0 rgba(0, 0, 0, 0.25);
+}
+
+.card:hover {
+    transform: translateY(-2px);
+    border-color: var(--glass-highlight);
+    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.35);
+}
+
+.card h3 {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #fff;
+}
+
+.card-header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+}
+
+.card-desc {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    margin-bottom: 0.8rem;
+}
+
+/* Row 1 Span Customizations */
+.checklist-card {
+    grid-column: span 2;
+}
+
+.wind-card {
+    grid-column: span 1;
+}
+
+/* Metric Cards */
+.metric-card {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.8rem 1rem;
+}
+
+.metric-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 38px;
+    height: 38px;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid var(--glass-border);
+}
+
+.metric-body {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+}
+
+.metric-body .label {
+    font-size: 0.72rem;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    font-weight: 500;
+}
+
+.metric-body .value {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: #fff;
+    margin-top: 0.05rem;
+}
+
+.metric-body .value-compact {
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: #fff;
+    margin-top: 0.05rem;
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    flex-wrap: wrap;
+}
+
+.metric-body .value-compact .divider {
+    color: var(--glass-border);
+    margin: 0 0.1rem;
+}
+
+.metric-body .value-compact .unit-xs {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+.metric-body .subtext {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    margin-top: 0.05rem;
+}
+
+/* Secondary Cards (Slightly dimmer style for contrast) */
+.card-secondary {
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px dashed var(--glass-border);
+}
+
+/* Safety Checklist */
+.checklist {
+    list-style: none;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.4rem;
+}
+
+.checklist li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.4rem 0.6rem;
+    background: rgba(255, 255, 255, 0.01);
+    border: 1px solid rgba(255, 255, 255, 0.03);
+    border-radius: 8px;
+    font-size: 0.8rem;
+}
+
+.checklist .rule-name {
+    color: var(--text-secondary);
+}
+
+.rule-status {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.rule-status .rule-value {
+    font-weight: 600;
+    color: #fff;
+}
+
+.rule-indicator {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: var(--text-muted);
+}
+
+/* Rule States */
+.rule-pass .rule-indicator {
+    background-color: var(--color-green);
+    box-shadow: 0 0 6px var(--color-green);
+}
+
+.rule-fail .rule-indicator {
+    background-color: var(--color-red);
+    box-shadow: 0 0 6px var(--color-red);
+}
+
+/* Warnings Box */
+.warnings-box {
+    margin-top: 0.6rem;
+    padding: 0.6rem;
+    background: rgba(239, 68, 68, 0.04);
+    border: 1px solid rgba(239, 68, 68, 0.15);
+    border-radius: 8px;
+}
+
+.warnings-box h4 {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--color-red);
+    text-transform: uppercase;
+    margin-bottom: 0.2rem;
+}
+
+.warnings-box ul {
+    list-style: none;
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+}
+
+.warnings-box li::before {
+    content: "• ";
+    color: var(--color-red);
+}
+
+.hidden { display: none !important; }
+
+/* Wind Dynamics Compass (Compact) */
+.wind-display {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.compass-wrapper {
+    position: relative;
+    width: 90px;
+    height: 90px;
+    flex-shrink: 0;
+}
+
+.compass {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    border: 1.5px solid var(--glass-border);
+    background: rgba(0, 0, 0, 0.3);
+}
+
+.direction {
+    position: absolute;
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: var(--text-muted);
+    transform: translate(-50%, -50%);
+}
+
+.direction-n { top: 15%; left: 50%; }
+.direction-e { top: 50%; left: 85%; }
+.direction-s { top: 85%; left: 50%; }
+.direction-w { top: 50%; left: 15%; }
+
+.compass-rose {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: #fff;
+    transform: translate(-50%, -50%);
+    z-index: 5;
+}
+
+.compass-needle {
+    position: absolute;
+    top: 15%;
+    left: 48%;
+    width: 2px;
+    height: 70%;
+    background: linear-gradient(to bottom, var(--color-blue) 50%, rgba(255,255,255,0.05) 50%);
+    transform-origin: 50% 50%;
+    transform: rotate(0deg);
+    transition: transform 1s cubic-bezier(0.25, 0.8, 0.25, 1);
+    z-index: 2;
+}
+
+.compass-needle::before {
+    content: '';
+    position: absolute;
+    top: -4px;
+    left: -2px;
+    width: 6px;
+    height: 6px;
+    background: var(--color-blue);
+    clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+}
+
+.wind-details {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+}
+
+.wind-metric {
+    display: flex;
+    align-items: baseline;
+}
+
+.wind-metric .value {
+    font-size: 2rem;
+    font-weight: 800;
+    color: #fff;
+    line-height: 1;
+}
+
+.wind-metric .unit {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    font-weight: 600;
+    margin-left: 0.1rem;
+}
+
+.wind-metric .label {
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    margin-left: 0.4rem;
+}
+
+.wind-sub-grid {
+    display: flex;
+    gap: 0.8rem;
+}
+
+.sub-metric {
+    display: flex;
+    flex-direction: column;
+}
+
+.sub-metric .val {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #fff;
+}
+
+.sub-metric .lbl {
+    font-size: 0.65rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+}
+
+/* Footer styling */
+.dashboard-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.8rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--glass-border);
+    font-size: 0.75rem;
+    color: var(--text-muted);
+}
+
+/* Responsive Grid Adjustments */
+@media (max-width: 900px) {
+    .dashboard-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    .checklist-card {
+        grid-column: span 2;
+    }
+    .wind-card {
+        grid-column: span 2;
+    }
+    .metric-card {
+        grid-column: span 1;
+    }
+}
+
+@media (max-width: 600px) {
+    .dashboard-grid {
+        grid-template-columns: 1fr;
+    }
+    .checklist-card, .wind-card, .metric-card, .card-secondary {
+        grid-column: span 1;
+    }
+    .checklist {
+        grid-template-columns: 1fr;
+    }
+    .dashboard-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    .header-right {
+        width: 100%;
+        justify-content: space-between;
+    }
+}

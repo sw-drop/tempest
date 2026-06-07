@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Starfront Weather Station Monitor</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- CSS Stylesheet -->
+    <link rel="stylesheet" href="index.css">
+</head>
+<body>
+    <div class="background-decor decor-1"></div>
+    <div class="background-decor decor-2"></div>
+    <div class="background-decor decor-3"></div>
+
+    <div class="dashboard-container">
+        <!-- Dashboard Header -->
+        <header class="dashboard-header">
+            <div class="header-left">
+                <h1>Starfront Observatory</h1>
+                <p class="subtitle">Weather Monitor & Roof Safety Hub</p>
+            </div>
+            <div class="header-right">
+                <!-- Discrete Temp Unit Toggle -->
+                <div class="temp-toggle">
+                    <button id="btn-temp-c" class="toggle-btn active">&deg;C</button>
+                    <button id="btn-temp-f" class="toggle-btn">&deg;F</button>
+                </div>
+                <div class="station-badge">
+                    <span class="station-label">Station:</span>
+                    <span id="station-name" class="station-val">Loading...</span>
+                </div>
+                <div class="status-poll">
+                    <span id="poll-timer">Next update: --s</span>
+                    <div class="pulse-dot"></div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Status: Roof Open Safety Allowed -->
+        <section id="roof-status-banner" class="roof-banner status-pending">
+            <div class="banner-icon">
+                <svg id="roof-icon" viewBox="0 0 24 24" width="28" height="28">
+                    <path fill="currentColor" d="M19,20H5V12H19M19,10H5L12,5L19,10M12,3L1,11V22H23V11L12,3Z" />
+                </svg>
+            </div>
+            <div class="banner-text">
+                <h2 id="roof-status-title">EVALUATING SAFETY RULES...</h2>
+                <p id="roof-status-desc">Fetching current observations from Tempest weather station...</p>
+            </div>
+        </section>
+
+        <!-- Dashboard Grid -->
+        <main class="dashboard-grid">
+            
+            <!-- Left Panel: Roof Opening Tests -->
+            <section class="card checklist-card">
+                <h3>Roof Opening Tests</h3>
+                <p class="card-desc">Safety thresholds required for the automated roof to open.</p>
+                
+                <ul class="checklist" id="safety-checklist">
+                    <li id="rule-wind">
+                        <span class="rule-name">Wind Speed (&le; 28 mph)</span>
+                        <div class="rule-status">
+                            <span class="rule-value">-- m/s</span>
+                            <span class="rule-indicator"></span>
+                        </div>
+                    </li>
+                    <li id="rule-wind-gust">
+                        <span class="rule-name">Wind Gusts (&le; 35 mph)</span>
+                        <div class="rule-status">
+                            <span class="rule-value">-- m/s</span>
+                            <span class="rule-indicator"></span>
+                        </div>
+                    </li>
+                    <li id="rule-temperature">
+                        <span class="rule-name">Temperature (28&deg;F - 110&deg;F)</span>
+                        <div class="rule-status">
+                            <span class="rule-value">-- &deg;C</span>
+                            <span class="rule-indicator"></span>
+                        </div>
+                    </li>
+                    <li id="rule-humidity">
+                        <span class="rule-name">Humidity (&le; 98%)</span>
+                        <div class="rule-status">
+                            <span class="rule-value">-- %</span>
+                            <span class="rule-indicator"></span>
+                        </div>
+                    </li>
+                    <li id="rule-dew-point-margin">
+                        <span class="rule-name">Dew Point Margin (&ge; 3&deg;F)</span>
+                        <div class="rule-status">
+                            <span class="rule-value">-- &deg;C</span>
+                            <span class="rule-indicator"></span>
+                        </div>
+                    </li>
+                    <li id="rule-clouds" class="rule-neutral">
+                        <span class="rule-name">Clouds (&le; 60% max)</span>
+                        <div class="rule-status">
+                            <span class="rule-value">N/A</span>
+                            <span class="rule-indicator indicator-neutral"></span>
+                        </div>
+                    </li>
+                </ul>
+
+                <div id="safety-warnings" class="warnings-box hidden">
+                    <h4>Safety Violations</h4>
+                    <ul id="warnings-list"></ul>
+                </div>
+            </section>
+
+            <!-- Right Panel: Wind Dynamics -->
+            <section class="card wind-card">
+                <div class="card-header-row">
+                    <h3>Wind Dynamics</h3>
+                    <!-- Wind Unit Selectors -->
+                    <div class="wind-toggle">
+                        <button id="btn-wind-mps" class="toggle-btn active">m/s</button>
+                        <button id="btn-wind-kmh" class="toggle-btn">km/h</button>
+                        <button id="btn-wind-mph" class="toggle-btn">mph</button>
+                        <button id="btn-wind-kn" class="toggle-btn">kn</button>
+                    </div>
+                </div>
+                
+                <div class="wind-display">
+                    <div class="compass-wrapper">
+                        <div class="compass">
+                            <div class="direction direction-n">N</div>
+                            <div class="direction direction-e">E</div>
+                            <div class="direction direction-s">S</div>
+                            <div class="direction direction-w">W</div>
+                            <div class="compass-rose"></div>
+                            <div id="compass-needle" class="compass-needle"></div>
+                        </div>
+                    </div>
+                    <div class="wind-details">
+                        <div class="wind-metric">
+                            <span class="value" id="wind-speed-val">--</span>
+                            <span class="unit" id="wind-unit-label">m/s</span>
+                            <span class="label">Wind Speed</span>
+                        </div>
+                        <div class="wind-sub-grid">
+                            <div class="sub-metric">
+                                <span class="val" id="wind-gust-val">-- m/s</span>
+                                <span class="lbl">Max Gust</span>
+                            </div>
+                            <div class="sub-metric">
+                                <span class="val" id="wind-dir-deg">--&deg;</span>
+                                <span class="lbl">Direction</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Bottom Panels: Core Weather Metrics -->
+            <section class="card metric-card temp-metric">
+                <div class="metric-icon">
+                    <svg viewBox="0 0 24 24" width="20" height="20">
+                        <path fill="#ff5e5b" d="M15,13V5A3,3 0 0,0 12,2A3,3 0 0,0 9,5V13A5,5 0 0,0 7,17A5,5 0 0,0 12,22A5,5 0 0,0 17,17A5,5 0 0,0 15,13M12,4A1,1 0 0,1 13,5V8H11V5A1,1 0 0,1 12,4M12,20A3,3 0 0,1 9,17A3,3 0 0,1 10.5,14.5L11,14V10H13V14L13.5,14.5A3,3 0 0,1 15,17A3,3 0 0,1 12,20Z" />
+                    </svg>
+                </div>
+                <div class="metric-body">
+                    <span class="label">Air Temperature</span>
+                    <span class="value" id="temp-val">--&deg;C</span>
+                    <span class="subtext" id="temp-alt-val">-- &deg;F</span>
+                </div>
+            </section>
+
+            <section class="card metric-card humidity-metric">
+                <div class="metric-icon">
+                    <svg viewBox="0 0 24 24" width="20" height="20">
+                        <path fill="#00d2fc" d="M12,2A8,8 0 0,0 4,10C4,17 12,22 12,22C12,22 20,17 20,10A8,8 0 0,0 12,2M12,4A6,6 0 0,1 18,10C18,14.25 14,18.4 12,20.08C10,18.4 6,14.25 6,10A6,6 0 0,1 12,4Z" />
+                    </svg>
+                </div>
+                <div class="metric-body">
+                    <span class="label">Relative Humidity</span>
+                    <span class="value" id="humidity-val">--%</span>
+                    <span class="subtext">Threshold: &le; 98%</span>
+                </div>
+            </section>
+
+            <!-- Prominent Dedicated Dew Point & Margin Card -->
+            <section class="card metric-card dewpoint-metric">
+                <div class="metric-icon">
+                    <svg viewBox="0 0 24 24" width="20" height="20">
+                        <path fill="#e2c044" d="M19,11.5C19,15.64 15.64,19 11.5,19C7.36,19 4,15.64 4,11.5C4,7.36 7.36,4 11.5,4C15.64,4 19,7.36 19,11.5M21,11.5C21,6.25 16.75,2 11.5,2C6.25,2 2,6.25 2,11.5C2,16.75 6.25,21 11.5,21C16.75,21 21,16.75 21,11.5M16.5,10.5C16.5,13.26 14.26,15.5 11.5,15.5C8.74,15.5 6.5,13.26 6.5,10.5C6.5,7.74 8.74,5.5 11.5,5.5C14.26,5.5 16.5,7.74 16.5,10.5Z" />
+                    </svg>
+                </div>
+                <div class="metric-body">
+                    <span class="label">Dew Point &amp; Margin</span>
+                    <span class="value" id="dew-point-val">--&deg;C</span>
+                    <span class="subtext">Margin: <span id="dp-margin-val" style="font-weight: 700;">--</span> (<span id="dp-margin-status">--</span>)</span>
+                </div>
+            </section>
+
+            <!-- Compact Non-critical Cards -->
+            <section class="card metric-card solar-metric card-secondary">
+                <div class="metric-icon">
+                    <svg viewBox="0 0 24 24" width="18" height="18">
+                        <path fill="#ffd200" d="M12,18A6,6 0 1,1 18,12A6,6 0 0,1 12,18M20,8.69V4H15.31L12,0.69L8.69,4H4V8.69L0.69,12L4,15.31V20H8.69L12,23.31L15.31,20H20V15.31L23.31,12L20,8.69Z" />
+                    </svg>
+                </div>
+                <div class="metric-body">
+                    <span class="label">Solar &amp; UV</span>
+                    <span class="value-compact"><span id="solar-val">--</span> <span class="unit-xs">W/m&sup2;</span> <span class="divider">|</span> <span id="uv-val">UV: --</span></span>
+                    <span class="subtext">Cloud Sensor: N/A (No Data)</span>
+                </div>
+            </section>
+
+            <section class="card metric-card pressure-metric card-secondary">
+                <div class="metric-icon">
+                    <svg viewBox="0 0 24 24" width="18" height="18">
+                        <path fill="#a9def9" d="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,4A8,8 0 0,1 20,12A8,8 0 0,1 12,20A8,8 0 0,1 4,12A8,8 0 0,1 12,4M12.5,7V12.25L17,14.92L16.25,16.15L11,13V7H12.5Z" />
+                    </svg>
+                </div>
+                <div class="metric-body">
+                    <span class="label">Barometric Pressure</span>
+                    <span class="value-compact"><span id="pressure-val">--</span> <span class="unit-xs">inHg</span> <span class="divider">|</span> <span id="pressure-hpa-val">-- hPa</span></span>
+                    <span class="subtext">Sea Level Corrected</span>
+                </div>
+            </section>
+
+            <section class="card metric-card rain-metric card-secondary">
+                <div class="metric-icon">
+                    <svg viewBox="0 0 24 24" width="18" height="18">
+                        <path fill="#4ea8de" d="M12,3.25C12,3.25 6,10 6,14C6,17.31 8.69,20 12,20C15.31,20 18,17.31 18,14C18,10 12,3.25 12,3.25M12,5.25C13.62,7.31 16,11.25 16,14C16,16.21 14.21,18 12,18C9.79,18 8,16.21 8,14C8,11.25 10.38,7.31 12,5.25Z" />
+                    </svg>
+                </div>
+                <div class="metric-body">
+                    <span class="label">Precipitation &amp; Storms</span>
+                    <span class="value-compact"><span id="precip-val">--</span> <span class="unit-xs">in</span> <span class="divider">|</span> <span id="lightning-val">Storms: --</span></span>
+                    <span class="subtext">Lightning strikes last 1 hour</span>
+                </div>
+            </section>
+        </main>
+
+        <!-- Footer -->
+        <footer class="dashboard-footer">
+            <p>Runs only while dashboard tab is active. Scraper enters standby when idle.</p>
+            <p id="last-update-ts">Last fetch: Loading...</p>
+        </footer>
+    </div>
+
+    <!-- Javascript Script -->
+    <script src="index.js"></script>
+</body>
+</html>

@@ -1,0 +1,24 @@
+The Developer Workaround (Network Tab / Scraping)
+Since the station data is publicly visible on the tempestwx.com frontend, the web page itself is making API calls to fetch that data. You can observe and replicate these calls:
+
+Open the station link (https://tempestwx.com/station/174867/grid) in your browser.
+
+Open your browser's Developer Tools (usually F12 or Ctrl+Shift+I) and go to the Network tab.
+
+Refresh the page and look for XHR/Fetch requests pointing to swd.weatherflow.com/swd/rest/.
+
+You will see the exact JSON endpoints the web application uses to populate the grid, along with the temporary or public token appended to the URL (e.g., ?token=...).
+
+You can replicate these exact URLs in your script (like Python's requests library) to get the data in clean JSON format.
+
+WeatherFlow's backend natively stores and transmits all data in standard SI metric units. The raw JSON feed provides temperature in Celsius and wind speed in meters per second (m/s) by default.
+
+/graph (The Historical Chart View)
+URL: [https://tempestwx.com/station/174867/graph](https://tempestwx.com/station/174867/graph)
+
+What it does: This completely replaces the "grid" tiles with interactive, timeline-based charts.
+
+Features: It allows you to view historical data for temperature, wind speed, rainfall, and barometric pressure. You can use the buttons on the screen to zoom out from the current Day to look at the past Week, Month, Year, or All Time averages and extremes.
+
+Note: Because this relies on an undocumented frontend implementation rather than an official developer API, the endpoints or public tokens can change without notice. Limit your polling frequency to avoid getting your IP address rate-limited or blocked.
+

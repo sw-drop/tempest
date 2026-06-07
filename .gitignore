@@ -1,0 +1,17 @@
+# System files
+.DS_Store
+
+# Python
+*.pyc
+__pycache__/
+venv/
+.venv/
+
+# Scratch/Diagnostic files
+git_check.py
+git_init.py
+probe_eadu.py
+probe_ports.py
+verify_deploy.py
+run.py
+test_fetch.py

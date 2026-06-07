@@ -1,0 +1,11 @@
+Starfront Observatory Roof Opening
+These thresholds can be subject to adjustment but the Starfront Observatories roof opening is based on:
+• Wind:  > 28 mph 
+• Clouds: 60% max
+• Humidity: 98% max
+• Temperature: 28°F – 110°F
+• Emergency wind gusts: 35 mph
+• Dew point margin: 3°F
+
+If any of these thresholds are exceeded the roofs will not open or if they are open they will close. 
+Unforecast weather events can form fast and hit before they show up on radar. This is why even through the roofs are automated we also have an actual person on site watching radar and the actual sky to see what's going on and overriding automation if necessary. 
