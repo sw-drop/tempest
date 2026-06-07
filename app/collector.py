@@ -153,9 +153,14 @@ class TempestCollector:
         daily_forecast = fore_raw.get("forecast", {}).get("daily", [])
         sunrise = 0
         sunset = 0
+        sunrise_tomorrow = 0
         if daily_forecast:
             sunrise = daily_forecast[0].get("sunrise", 0)
             sunset = daily_forecast[0].get("sunset", 0)
+        if len(daily_forecast) > 1:
+            sunrise_tomorrow = daily_forecast[1].get("sunrise", 0)
+        else:
+            sunrise_tomorrow = sunrise + 86400 if sunrise > 0 else 0
 
         # Calculate day/night status (Daytime = 1 hour after sunrise to 1 hour before sunset)
         is_daytime = False
@@ -173,18 +178,19 @@ class TempestCollector:
                 current_cloud = timeseries[0].get("data", {}).get("instant", {}).get("details", {}).get("cloud_area_fraction")
                 
                 # Filter for night forecast timeline
-                # If daytime: coming night, from sunset - 1h to tomorrow's sunrise + 1h
-                # If nighttime: rest of this night, from now to sunrise + 1h
+                # If early morning before today's sunrise + 1h: rest of last night
+                # If daytime: coming night, from today's sunset - 1h to tomorrow's sunrise + 1h
+                # If nighttime: current night, from today's sunset - 1h to tomorrow's sunrise + 1h
                 if sunrise > 0 and sunset > 0:
                     if current_time < (sunrise + 3600):
                         filter_start = current_time
                         filter_end = sunrise + 3600
-                    elif current_time > (sunset - 3600):
-                        filter_start = current_time
-                        filter_end = sunrise + 86400 + 3600
+                    elif current_time < (sunset - 3600):
+                        filter_start = sunset - 3600
+                        filter_end = sunrise_tomorrow + 3600
                     else:
                         filter_start = sunset - 3600
-                        filter_end = sunrise + 86400 + 3600
+                        filter_end = sunrise_tomorrow + 3600
                 else:
                     filter_start = current_time
                     filter_end = current_time + 43200
@@ -214,7 +220,7 @@ class TempestCollector:
                             "temp_f": (temp * 9/5) + 32 if temp is not None else None
                         })
                         
-                        if len(night_forecast) >= 10:
+                        if len(night_forecast) >= 24:
                             break
 
         # 3. Conversions

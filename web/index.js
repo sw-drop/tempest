@@ -325,7 +325,7 @@ function updateDashboard() {
     precipEl.textContent = metrics.precip_in !== null ? metrics.precip_in.toFixed(3) : '--';
     lightningEl.textContent = `Storms: ${metrics.lightning_count_1h !== null ? metrics.lightning_count_1h : '--'} strikes`;
 
-    // 5. Update Night Conditions Forecast (Local Observatory Time & Vertical Layout)
+    // 5. Update Night Conditions Forecast (Across the page table with Left Labels)
     const nightForecast = proc.night_forecast || [];
     
     if (daytimeStatus === 'daytime') {
@@ -337,28 +337,46 @@ function updateDashboard() {
     if (nightForecast && nightForecast.length > 0) {
         forecastTimeline.innerHTML = '';
         const tz = (currentData.raw && currentData.raw.timezone) || 'America/Chicago';
-        nightForecast.forEach(item => {
-            const date = new Date(item.timestamp * 1000);
-            const timeStr = new Intl.DateTimeFormat([], {
-                hour: 'numeric',
-                minute: '2-digit',
-                timeZone: tz
-            }).format(date);
+        
+        // Chunk forecast size based on screen width to avoid horizontal scrolling
+        const width = window.innerWidth;
+        const chunkSize = width < 600 ? 5 : (width < 900 ? 8 : 12);
+        
+        for (let i = 0; i < nightForecast.length; i += chunkSize) {
+            const chunk = nightForecast.slice(i, i + chunkSize);
             
-            const tempStr = tempUnit === 'C' ? `${item.temp_c.toFixed(1)}°C` : `${item.temp_f.toFixed(1)}°F`;
-            const emoji = getSymbolEmoji(item.symbol_code);
-            const isCloudUnsafe = item.cloud > 60;
+            let timeCells = `<td class="fc-row-label">Time</td>`;
+            let condCells = `<td class="fc-row-label">Condition</td>`;
+            let cloudCells = `<td class="fc-row-label">Cloud Cover</td>`;
+            let tempCells = `<td class="fc-row-label">Temperature</td>`;
 
-            const itemDiv = document.createElement('div');
-            itemDiv.className = 'forecast-row';
-            itemDiv.innerHTML = `
-                <span class="fc-time">${timeStr}</span>
-                <span class="fc-icon" title="${item.symbol_code}">${emoji}</span>
-                <span class="fc-cloud ${isCloudUnsafe ? 'cloud-unsafe' : ''}">${item.cloud.toFixed(0)}%</span>
-                <span class="fc-temp">${tempStr}</span>
+            chunk.forEach(item => {
+                const date = new Date(item.timestamp * 1000);
+                const timeStr = new Intl.DateTimeFormat([], {
+                    hour: 'numeric',
+                    timeZone: tz
+                }).format(date); // Just the hour is cleaner in column blocks (e.g. 7 PM)
+                
+                const tempStr = tempUnit === 'C' ? `${item.temp_c.toFixed(0)}°` : `${item.temp_f.toFixed(0)}°`;
+                const emoji = getSymbolEmoji(item.symbol_code);
+                const isCloudUnsafe = item.cloud > 60;
+
+                timeCells += `<td>${timeStr}</td>`;
+                condCells += `<td class="fc-emoji-cell" title="${item.symbol_code}">${emoji}</td>`;
+                cloudCells += `<td class="${isCloudUnsafe ? 'cloud-unsafe font-bold' : ''}">${item.cloud.toFixed(0)}%</td>`;
+                tempCells += `<td>${tempStr}</td>`;
+            });
+
+            const table = document.createElement('table');
+            table.className = 'forecast-table';
+            table.innerHTML = `
+                <tr>${timeCells}</tr>
+                <tr>${condCells}</tr>
+                <tr>${cloudCells}</tr>
+                <tr>${tempCells}</tr>
             `;
-            forecastTimeline.appendChild(itemDiv);
-        });
+            forecastTimeline.appendChild(table);
+        }
     } else {
         forecastTimeline.innerHTML = '<div class="forecast-loading">Night forecast currently unavailable.</div>';
     }
@@ -457,4 +475,11 @@ window.addEventListener('DOMContentLoaded', () => {
     setupToggleListeners();
     fetchWeather();
     startTimer();
+});
+
+// Trigger re-render on resize to dynamically adjust table chunk sizes
+window.addEventListener('resize', () => {
+    if (currentData) {
+        updateDashboard();
+    }
 });

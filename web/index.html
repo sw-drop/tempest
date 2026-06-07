@@ -154,15 +154,6 @@
                         </div>
                     </div>
                 </div>
-
-                <!-- Night Conditions Forecast (Vertical List) -->
-                <div class="forecast-section" id="forecast-section">
-                    <h4 id="forecast-header">Night Forecast</h4>
-                    <div class="forecast-vertical" id="forecast-timeline">
-                        <!-- Populated by index.js -->
-                        <div class="forecast-loading">Waiting for observation data...</div>
-                    </div>
-                </div>
             </section>
 
             <!-- Bottom Panels: Core Weather Metrics -->
@@ -243,6 +234,16 @@
                     <span class="label">Precipitation &amp; Storms</span>
                     <span class="value-compact"><span id="precip-val">--</span> <span class="unit-xs">in</span> <span class="divider">|</span> <span id="lightning-val">Storms: --</span></span>
                     <span class="subtext">Lightning strikes last 1 hour</span>
+                </div>
+            </section>
+
+            <!-- Night Conditions Forecast (Across the page table) -->
+            <section class="card forecast-card">
+                <h3 id="forecast-header">Night Forecast</h3>
+                <p class="card-desc">Observing night forecast window (1 hour before sunset to 1 hour after sunrise) modeling cloud cover and temperatures.</p>
+                <div class="forecast-table-wrapper" id="forecast-timeline">
+                    <!-- Populated dynamically by index.js -->
+                    <div class="forecast-loading">Waiting for observation data...</div>
                 </div>
             </section>
         </main>
