@@ -3,6 +3,8 @@ import urllib.request
 import json
 import time
 import logging
+from datetime import datetime
+from calendar import timegm
 
 logger = logging.getLogger("tempest_collector")
 
@@ -67,22 +69,44 @@ class TempestCollector:
             is_data_stale = (current_time - weather_state.last_update) >= self.config.POLL_INTERVAL_SECONDS
             
             if is_client_active and (is_data_stale or weather_state.data is None):
-                logger.info("Active dashboard client detected. Fetching new data...")
+                logger.info("Active dashboard client detected. Fetching data...")
                 try:
-                    # 1. Fetch current observations
+                    # 1. Fetch current observations from Tempest
                     req_obs = urllib.request.Request(obs_url, headers={"User-Agent": "Mozilla/5.0 (Tempest-Script-Host)"})
                     with urllib.request.urlopen(req_obs, timeout=10) as resp:
                         obs_raw = json.loads(resp.read().decode('utf-8'))
                     
-                    # 2. Fetch forecast to get sunrise and sunset timestamps
+                    # 2. Fetch forecast from Tempest to get sunrise/sunset
                     req_fore = urllib.request.Request(forecast_url, headers={"User-Agent": "Mozilla/5.0 (Tempest-Script-Host)"})
                     with urllib.request.urlopen(req_fore, timeout=10) as resp:
                         fore_raw = json.loads(resp.read().decode('utf-8'))
                     
+                    # 3. Fetch MET Norway (yr.no) forecast using coordinates
+                    met_raw = None
+                    latitude = obs_raw.get("latitude")
+                    longitude = obs_raw.get("longitude")
+                    
+                    if latitude is not None and longitude is not None:
+                        # MET Norway API format (needs coordinates)
+                        # We must supply a unique User-Agent to avoid blocks as per ToS
+                        met_url = f"https://api.met.no/weatherapi/locationforecast/2.0/compact?lat={latitude:.4f}&lon={longitude:.4f}"
+                        logger.info(f"Polling MET Norway from: {met_url}")
+                        req_met = urllib.request.Request(
+                            met_url, 
+                            headers={
+                                "User-Agent": "TempestScriptHost/1.0 gary@pillay.net"
+                            }
+                        )
+                        try:
+                            with urllib.request.urlopen(req_met, timeout=10) as resp:
+                                met_raw = json.loads(resp.read().decode('utf-8'))
+                        except Exception as met_err:
+                            logger.error(f"Error fetching MET Norway cloud forecast: {met_err}")
+
                     if obs_raw.get("status", {}).get("status_code") == 0 and fore_raw.get("status", {}).get("status_code") == 0:
-                        processed_data = self._process(obs_raw, fore_raw)
+                        processed_data = self._process(obs_raw, fore_raw, met_raw)
                         weather_state.update(processed_data)
-                        logger.info("Observations and forecast successfully updated.")
+                        logger.info("Observations, forecast, and MET Norway data successfully updated.")
                         
                         # Trigger callbacks (e.g. MQTT publish)
                         for cb in self.on_update_callbacks:
@@ -102,13 +126,14 @@ class TempestCollector:
             fetch_now_event.wait(timeout=2)
             fetch_now_event.clear()
 
-    def _process(self, obs_raw, fore_raw):
+    def _process(self, obs_raw, fore_raw, met_raw):
         obs_list = obs_raw.get("obs", [])
         if not obs_list:
             logger.warning("Observation array is empty.")
             return {"raw": obs_raw, "processed": {}, "roof_status": {"allowed": False, "reason": "No observations"}}
 
         obs = obs_list[0]
+        current_time = time.time()
         
         # 1. Extract values in standard SI units
         temp_c = obs.get("air_temperature")
@@ -132,7 +157,67 @@ class TempestCollector:
             sunrise = daily_forecast[0].get("sunrise", 0)
             sunset = daily_forecast[0].get("sunset", 0)
 
-        # 2. Conversions (all done here to populate JSON fully; client will use these values)
+        # Calculate day/night status (Daytime = 1 hour after sunrise to 1 hour before sunset)
+        is_daytime = False
+        if sunrise > 0 and sunset > 0:
+            is_daytime = (sunrise + 3600) <= current_time <= (sunset - 3600)
+
+        # 2. Extract MET Norway Cloud cover and hourly forecast
+        current_cloud = None
+        night_forecast = []
+        
+        if met_raw:
+            timeseries = met_raw.get("properties", {}).get("timeseries", [])
+            if timeseries:
+                # First element represents current hour observations
+                current_cloud = timeseries[0].get("data", {}).get("instant", {}).get("details", {}).get("cloud_area_fraction")
+                
+                # Filter for night forecast timeline
+                # If daytime: coming night, from sunset - 1h to tomorrow's sunrise + 1h
+                # If nighttime: rest of this night, from now to sunrise + 1h
+                if sunrise > 0 and sunset > 0:
+                    if current_time < (sunrise + 3600):
+                        filter_start = current_time
+                        filter_end = sunrise + 3600
+                    elif current_time > (sunset - 3600):
+                        filter_start = current_time
+                        filter_end = sunrise + 86400 + 3600
+                    else:
+                        filter_start = sunset - 3600
+                        filter_end = sunrise + 86400 + 3600
+                else:
+                    filter_start = current_time
+                    filter_end = current_time + 43200
+
+                for entry in timeseries:
+                    time_str = entry.get("time")
+                    try:
+                        dt = datetime.strptime(time_str, "%Y-%m-%dT%H:%M:%SZ")
+                        ts = timegm(dt.utctimetuple())
+                    except Exception:
+                        continue
+                    
+                    if filter_start <= ts <= filter_end:
+                        details = entry.get("data", {}).get("instant", {}).get("details", {})
+                        symbol_code = entry.get("data", {}).get("next_1_hours", {}).get("summary", {}).get("symbol_code", "")
+                        if not symbol_code:
+                            symbol_code = entry.get("data", {}).get("next_6_hours", {}).get("summary", {}).get("symbol_code", "")
+                            
+                        temp = details.get("air_temperature")
+                        cloud = details.get("cloud_area_fraction")
+                        
+                        night_forecast.append({
+                            "timestamp": ts,
+                            "cloud": cloud,
+                            "symbol_code": symbol_code,
+                            "temp_c": temp,
+                            "temp_f": (temp * 9/5) + 32 if temp is not None else None
+                        })
+                        
+                        if len(night_forecast) >= 10:
+                            break
+
+        # 3. Conversions
         temp_f = (temp_c * 9/5) + 32 if temp_c is not None else None
         dew_point_f = (dew_point_c * 9/5) + 32 if dew_point_c is not None else None
         dew_point_margin_f = (temp_f - dew_point_f) if (temp_f is not None and dew_point_f is not None) else None
@@ -143,7 +228,7 @@ class TempestCollector:
         pressure_inhg = pressure_hpa * 0.02953 if pressure_hpa is not None else None
         precip_in = precip_mm * 0.03937 if precip_mm is not None else None
 
-        # 3. Evaluate Roof Thresholds (Starfront Observatory)
+        # 4. Evaluate Roof Thresholds (Starfront Observatory)
         checks = {}
         allowed = True
         reasons = []
@@ -228,21 +313,26 @@ class TempestCollector:
             allowed = False
             reasons.append("Dew point margin unavailable")
 
-        # Cloud check: not directly available on Tempest, flagged as unknown
-        checks["clouds"] = {
-            "val": "N/A",
-            "unit": "",
-            "limit": "<= 60%",
-            "ok": True,  # Non-blocking
-            "note": "Needs manual or forecast input"
-        }
-
-        # Calculate day/night status
-        # Daytime is defined as between 1 hour after sunrise and 1 hour before sunset
-        current_time = time.time()
-        is_daytime = False
-        if sunrise > 0 and sunset > 0:
-            is_daytime = (sunrise + 3600) <= current_time <= (sunset - 3600)
+        # Cloud check: populated from MET Norway API
+        if current_cloud is not None:
+            checks["clouds"] = {
+                "val": round(current_cloud, 0),
+                "unit": "%",
+                "limit": "<= 60%",
+                "ok": current_cloud <= 60.0
+            }
+            if not checks["clouds"]["ok"]:
+                allowed = False
+                reasons.append(f"Cloud cover {round(current_cloud, 0)}% exceeds 60%")
+        else:
+            # Fallback to N/A if API failed or no coordinate data, do not block the dome
+            checks["clouds"] = {
+                "val": "N/A",
+                "unit": "",
+                "limit": "<= 60%",
+                "ok": True,
+                "note": "MET Norway API unavailable"
+            }
 
         # Formulate response
         processed = {
@@ -252,6 +342,7 @@ class TempestCollector:
             "sunrise": sunrise,
             "sunset": sunset,
             "daytime_status": "daytime" if is_daytime else "nighttime",
+            "night_forecast": night_forecast,
             "units": {
                 "temp": "°C",
                 "wind": "m/s",

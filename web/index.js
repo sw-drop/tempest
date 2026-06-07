@@ -33,7 +33,8 @@ const ruleElements = {
     wind_gust: document.getElementById('rule-wind-gust'),
     temperature: document.getElementById('rule-temperature'),
     humidity: document.getElementById('rule-humidity'),
-    dew_point_margin: document.getElementById('rule-dew-point-margin')
+    dew_point_margin: document.getElementById('rule-dew-point-margin'),
+    clouds: document.getElementById('rule-clouds')
 };
 
 // Warnings
@@ -60,6 +61,10 @@ const pressureEl = document.getElementById('pressure-val');
 const pressureHpaEl = document.getElementById('pressure-hpa-val');
 const precipEl = document.getElementById('precip-val');
 const lightningEl = document.getElementById('lightning-val');
+
+// Forecast Elements
+const forecastHeader = document.getElementById('forecast-header');
+const forecastTimeline = document.getElementById('forecast-timeline');
 
 // Helper unit conversions
 function formatTemp(valC, valF, unit = tempUnit) {
@@ -97,13 +102,24 @@ function getWindUnitLabel(unit = windUnit) {
     }
 }
 
+// Map MET Norway symbol codes to emojis
+function getSymbolEmoji(symbolCode) {
+    if (!symbolCode) return '☁️';
+    const code = symbolCode.toLowerCase();
+    if (code.includes('clearsky')) return code.includes('night') ? '🌙' : '☀️';
+    if (code.includes('fair')) return code.includes('night') ? '🌙' : '🌤️';
+    if (code.includes('partlycloudy')) return '⛅';
+    if (code.includes('cloudy')) return '☁️';
+    if (code.includes('rain') || code.includes('sleet')) return '🌧️';
+    if (code.includes('snow')) return '❄️';
+    if (code.includes('thunder')) return '⛈️';
+    if (code.includes('fog')) return '🌫️';
+    return '☁️';
+}
+
 // Fetch observations
 async function fetchWeather() {
-    // Only fetch if the page is visible to the user
-    if (document.hidden) {
-        logger.debug("Page is in background, skipping fetch.");
-        return;
-    }
+    if (document.hidden) return;
     
     try {
         const response = await fetch(API_URL);
@@ -128,7 +144,7 @@ function resetTimer() {
 // Update Timer Display
 function updateTimerDisplay() {
     if (document.hidden) {
-        pollTimerEl.textContent = "Standby (tab inactive)";
+        pollTimerEl.textContent = "Standby";
     } else {
         pollTimerEl.textContent = `Next update: ${nextPollSeconds}s`;
     }
@@ -169,7 +185,6 @@ function updateDashboard() {
         roofTitleEl.textContent = 'Daytime: Safe conditions';
         roofDescEl.textContent = 'Astronomical observations suspended during daylight hours. Observatory closed.';
     } else {
-        // Nighttime observing
         if (roof.allowed) {
             roofBannerEl.className = 'roof-banner status-allowed';
             roofTitleEl.textContent = 'Safe conditions';
@@ -185,6 +200,17 @@ function updateDashboard() {
         }
     }
 
+    // Update Checklist rule labels dynamically depending on temperature unit
+    const tempRuleName = ruleElements.temperature.querySelector('.rule-name');
+    const dpMarginRuleName = ruleElements.dew_point_margin.querySelector('.rule-name');
+    if (tempUnit === 'C') {
+        tempRuleName.innerHTML = 'Temperature (-2.2&deg;C - 43.3&deg;C)';
+        dpMarginRuleName.innerHTML = 'Dew Point Margin (&ge; 1.7&deg;C)';
+    } else {
+        tempRuleName.innerHTML = 'Temperature (28&deg;F - 110&deg;F)';
+        dpMarginRuleName.innerHTML = 'Dew Point Margin (&ge; 3&deg;F)';
+    }
+
     // 3. Update Roof Opening Tests Checklist
     const checks = roof.checks || {};
     for (const [key, check] of Object.entries(checks)) {
@@ -194,20 +220,18 @@ function updateDashboard() {
             const indicator = el.querySelector('.rule-indicator');
             
             if (check.val !== undefined && check.val !== null) {
-                // Formatting values according to toggled units
                 if (key === 'temperature') {
-                    // check.val is in F, convert if unit is C
                     const valC = (check.val - 32) * 5/9;
                     valSpan.textContent = tempUnit === 'C' ? `${valC.toFixed(1)} °C` : `${check.val}°F`;
                 } else if (key === 'dew_point_margin') {
-                    // check.val is in F, convert difference if C
                     const valC = check.val * 5/9;
                     valSpan.textContent = tempUnit === 'C' ? `${valC.toFixed(1)} °C` : `${check.val}°F`;
                 } else if (key === 'wind' || key === 'wind_gust') {
-                    // check.val is in mph, convert
                     const mps = check.val / 2.23694;
                     const converted = convertWind(mps);
                     valSpan.textContent = `${converted.toFixed(1)} ${getWindUnitLabel()}`;
+                } else if (key === 'clouds') {
+                    valSpan.textContent = check.val !== 'N/A' ? `${check.val}%` : 'N/A';
                 } else {
                     valSpan.textContent = `${check.val} ${check.unit || ''}`;
                 }
@@ -237,7 +261,7 @@ function updateDashboard() {
         warningsBox.classList.add('hidden');
     }
 
-    // 4. Update Metric Cards
+    // 4. Update Core Metric Cards
 
     // Air Temperature
     tempEl.textContent = formatTemp(metrics.temp_c, metrics.temp_f);
@@ -252,7 +276,6 @@ function updateDashboard() {
     const dpMarginVal = tempUnit === 'C' ? metrics.dew_point_margin_c : metrics.dew_point_margin_f;
     if (dpMarginVal !== null && dpMarginVal !== undefined) {
         dpMarginEl.textContent = `${dpMarginVal.toFixed(1)}°${tempUnit}`;
-        // margin threshold is 3°F (which is 1.67°C)
         const isSafe = tempUnit === 'C' ? dpMarginVal >= 1.67 : dpMarginVal >= 3.0;
         dpMarginStatusEl.textContent = isSafe ? 'Safe' : 'Risk';
         dpMarginStatusEl.style.color = isSafe ? '#10b981' : '#ef4444';
@@ -287,6 +310,39 @@ function updateDashboard() {
     // Rain & Storms (Compact style)
     precipEl.textContent = metrics.precip_in !== null ? metrics.precip_in.toFixed(3) : '--';
     lightningEl.textContent = `Storms: ${metrics.lightning_count_1h !== null ? metrics.lightning_count_1h : '--'} strikes`;
+
+    // 5. Update Night Conditions Forecast Timeline
+    const nightForecast = proc.night_forecast || [];
+    
+    if (daytimeStatus === 'daytime') {
+        forecastHeader.textContent = "Observing Night Forecast (Upcoming)";
+    } else {
+        forecastHeader.textContent = "Observing Night Forecast (Remaining)";
+    }
+
+    if (nightForecast && nightForecast.length > 0) {
+        forecastTimeline.innerHTML = '';
+        nightForecast.forEach(item => {
+            const date = new Date(item.timestamp * 1000);
+            const timeStr = date.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+            
+            const tempStr = tempUnit === 'C' ? `${item.temp_c.toFixed(1)}°C` : `${item.temp_f.toFixed(1)}°F`;
+            const emoji = getSymbolEmoji(item.symbol_code);
+            const isCloudUnsafe = item.cloud > 60;
+
+            const itemDiv = document.createElement('div');
+            itemDiv.className = 'forecast-item';
+            itemDiv.innerHTML = `
+                <span class="fc-time">${timeStr}</span>
+                <span class="fc-icon" title="${item.symbol_code}">${emoji}</span>
+                <span class="fc-cloud ${isCloudUnsafe ? 'cloud-unsafe' : ''}">${item.cloud.toFixed(0)}%</span>
+                <span class="fc-temp">${tempStr}</span>
+            `;
+            forecastTimeline.appendChild(itemDiv);
+        });
+    } else {
+        forecastTimeline.innerHTML = '<div class="forecast-loading">Night forecast currently unavailable.</div>';
+    }
 }
 
 // Timer loop
@@ -310,7 +366,6 @@ function startTimer() {
 
 // Setup Toggles Event Listeners
 function setupToggleListeners() {
-    // Temperature unit selectors
     btnTempC.addEventListener('click', () => {
         tempUnit = 'C';
         localStorage.setItem('temp_unit', 'C');
@@ -326,7 +381,6 @@ function setupToggleListeners() {
         updateDashboard();
     });
 
-    // Wind unit selectors
     const windButtons = {
         mps: btnWindMps,
         kmh: btnWindKmh,
@@ -339,7 +393,6 @@ function setupToggleListeners() {
             windUnit = unitKey;
             localStorage.setItem('wind_unit', unitKey);
             
-            // Set active class
             Object.values(windButtons).forEach(btn => btn.classList.remove('active'));
             btnEl.classList.add('active');
             
@@ -350,7 +403,6 @@ function setupToggleListeners() {
 
 // Apply initial button active classes
 function initToggleStates() {
-    // Temp
     if (tempUnit === 'C') {
         btnTempC.classList.add('active');
         btnTempF.classList.remove('active');
@@ -359,7 +411,6 @@ function initToggleStates() {
         btnTempC.classList.remove('active');
     }
 
-    // Wind
     btnWindMps.classList.remove('active');
     btnWindKmh.classList.remove('active');
     btnWindMph.classList.remove('active');
@@ -372,13 +423,10 @@ function initToggleStates() {
 }
 
 // Page Visibility API handler
-// Pauses client requests entirely when browser tab is inactive, and triggers fetch when returning
 document.addEventListener('visibilitychange', () => {
     if (document.hidden) {
-        logger.info("Tab hidden. Pausing background client polling.");
         updateTimerDisplay();
     } else {
-        logger.info("Tab visible. Resuming active client polling.");
         fetchWeather();
         startTimer();
     }

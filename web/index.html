@@ -56,7 +56,7 @@
         <!-- Dashboard Grid -->
         <main class="dashboard-grid">
             
-            <!-- Left Panel: Roof Opening Tests -->
+            <!-- Left Panel: Roof Opening Tests & Night Forecast -->
             <section class="card checklist-card">
                 <h3>Roof Opening Tests</h3>
                 <p class="card-desc">Safety thresholds required for the automated roof to open.</p>
@@ -97,11 +97,11 @@
                             <span class="rule-indicator"></span>
                         </div>
                     </li>
-                    <li id="rule-clouds" class="rule-neutral">
+                    <li id="rule-clouds">
                         <span class="rule-name">Clouds (&le; 60% max)</span>
                         <div class="rule-status">
-                            <span class="rule-value">N/A</span>
-                            <span class="rule-indicator indicator-neutral"></span>
+                            <span class="rule-value">-- %</span>
+                            <span class="rule-indicator"></span>
                         </div>
                     </li>
                 </ul>
@@ -109,6 +109,15 @@
                 <div id="safety-warnings" class="warnings-box hidden">
                     <h4>Safety Violations</h4>
                     <ul id="warnings-list"></ul>
+                </div>
+
+                <!-- Night Conditions Forecast (Dynamic Timeline) -->
+                <div class="forecast-section" id="forecast-section">
+                    <h4 id="forecast-header">Night Conditions Forecast</h4>
+                    <div class="forecast-timeline" id="forecast-timeline">
+                        <!-- Populated by index.js -->
+                        <div class="forecast-loading">Waiting for observation data...</div>
+                    </div>
                 </div>
             </section>
 
@@ -207,7 +216,7 @@
                 <div class="metric-body">
                     <span class="label">Solar &amp; UV</span>
                     <span class="value-compact"><span id="solar-val">--</span> <span class="unit-xs">W/m&sup2;</span> <span class="divider">|</span> <span id="uv-val">UV: --</span></span>
-                    <span class="subtext">Cloud Sensor: N/A (No Data)</span>
+                    <span class="subtext">Cloud Sensor: MET Norway API</span>
                 </div>
             </section>
 
@@ -240,7 +249,7 @@
 
         <!-- Footer -->
         <footer class="dashboard-footer">
-            <p>Runs only while dashboard tab is active. Scraper enters standby when idle.</p>
+            <p>Data sourced from Tempest station and MET Norway APIs.</p>
             <p id="last-update-ts">Last fetch: Loading...</p>
         </footer>
     </div>
