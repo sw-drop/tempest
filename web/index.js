@@ -142,9 +142,9 @@ function translateReason(reason) {
     if (!reason) return '';
     let result = reason;
     
-    // 1. Temperature Warning translation
+    // 1. Temperature Warning translation (independent of degree symbol encoding)
     if (result.includes('Temperature') && result.includes('is outside')) {
-        const match = result.match(/Temperature ([\d.-]+)°F/);
+        const match = result.match(/Temperature\s+([\d.-]+)[^\d]+F/);
         if (match && tempUnit === 'C') {
             const valF = parseFloat(match[1]);
             const valC = (valF - 32) * 5/9;
@@ -152,22 +152,22 @@ function translateReason(reason) {
         }
     }
     
-    // 2. Dew Point Margin Warning translation
-    if (result === 'Dew point margin less than 3°F') {
+    // 2. Dew Point Margin Warning translation (independent of degree symbol encoding)
+    if (result.includes('Dew point margin less than')) {
         if (tempUnit === 'C') {
             result = 'Dew point margin less than 1.7°C';
         }
     }
     
     // 3. Wind Warning translation
-    if (result === 'Wind exceeds 28 mph') {
+    if (result.startsWith('Wind exceeds 28 mph')) {
         const mps = 28 / 2.23694;
         const converted = convertWind(mps);
         result = `Wind exceeds ${converted.toFixed(1)} ${getWindUnitLabel()}`;
     }
     
     // 4. Wind Gust Warning translation
-    if (result === 'Wind gust exceeds 35 mph') {
+    if (result.startsWith('Wind gust exceeds 35 mph')) {
         const mps = 35 / 2.23694;
         const converted = convertWind(mps);
         result = `Wind gust exceeds ${converted.toFixed(1)} ${getWindUnitLabel()}`;
