@@ -47,30 +47,13 @@ def main():
     rsync_cmd.extend([".", f"{ssh_host}:{remote_dir}/"])
     run_local(rsync_cmd)
 
-    # 3. Build the docker image on Eadu
-    print("\nStep 3: Building docker image on Eadu...")
-    build_cmd = f"cd {remote_dir} && docker build -t script-host ."
-    run_remote(ssh_host, build_cmd)
+    # 3. Stop existing services using docker compose down
+    print("\nStep 3: Stopping old services (if any) with docker compose...")
+    run_remote(ssh_host, f"cd {remote_dir} && docker compose down", check=False)
 
-    # 4. Stop and remove existing container if running
-    print("\nStep 4: Stopping old container (if any)...")
-    run_remote(ssh_host, "docker stop script-host || true", check=False)
-    run_remote(ssh_host, "docker rm script-host || true", check=False)
-
-    # 5. Run the new container
-    # Mapping port 8085 on Eadu host to port 80 inside container
-    # Volume mount: /docker/script-host/extra_scripts to /app/extra_scripts for future python scripts
-    print(f"\nStep 5: Launching new container on port {host_port}...")
-    run_cmd = (
-        f"docker run -d "
-        f"--name script-host "
-        f"--restart unless-stopped "
-        f"-p {host_port}:80 "
-        f"-v {remote_dir}/extra_scripts:/app/extra_scripts "
-        f"-e TEMPEST_STATION_ID=174867 "
-        f"script-host"
-    )
-    run_remote(ssh_host, run_cmd)
+    # 4. Build and start services using docker compose up
+    print(f"\nStep 4: Building and launching services on port {host_port} with docker compose...")
+    run_remote(ssh_host, f"cd {remote_dir} && docker compose up --build -d")
 
     print("\n==================================================")
     print("Deployment completed successfully!")

@@ -1,0 +1,19 @@
+services:
+  script-host:
+    container_name: script-host
+    image: script-host
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    ports:
+      - "8081:80"
+    volumes:
+      - ./extra_scripts:/app/extra_scripts
+    environment:
+      - TEMPEST_STATION_ID=174867
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
