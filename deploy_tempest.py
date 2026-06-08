@@ -47,8 +47,9 @@ def main():
     rsync_cmd.extend([".", f"{ssh_host}:{remote_dir}/"])
     run_local(rsync_cmd)
 
-    # 3. Stop existing services using docker compose down
-    print("\nStep 3: Stopping old services (if any) with docker compose...")
+    # 3. Stop existing services using docker compose down & remove legacy standalone container if exists
+    print("\nStep 3: Stopping old services and cleaning legacy containers...")
+    run_remote(ssh_host, "docker rm -f script-host || true", check=False)
     run_remote(ssh_host, f"cd {remote_dir} && docker compose down", check=False)
 
     # 4. Build and start services using docker compose up
