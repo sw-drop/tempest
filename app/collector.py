@@ -103,10 +103,30 @@ class TempestCollector:
                         except Exception as met_err:
                             logger.error(f"Error fetching MET Norway cloud forecast: {met_err}")
 
+                    # 4. Fetch Starfront Building 5 Roof Status
+                    physical_roof_status = "Unknown"
+                    try:
+                        req_roof = urllib.request.Request(
+                            "https://alpaca-api.tx.starfront.space/api/v1/roof/state",
+                            headers={"User-Agent": "TempestScriptHost/1.0 gary@pillay.net"}
+                        )
+                        with urllib.request.urlopen(req_roof, timeout=10) as resp:
+                            roof_state_raw = json.loads(resp.read().decode('utf-8'))
+                            # Find Building 5
+                            building_5 = next((b for b in roof_state_raw if b.get("device_number") == 5), None)
+                            if building_5:
+                                is_open = building_5.get("is_open")
+                                if is_open is True:
+                                    physical_roof_status = "Open"
+                                elif is_open is False:
+                                    physical_roof_status = "Closed"
+                    except Exception as roof_err:
+                        logger.error(f"Error fetching Starfront building roof state: {roof_err}")
+
                     if obs_raw.get("status", {}).get("status_code") == 0 and fore_raw.get("status", {}).get("status_code") == 0:
-                        processed_data = self._process(obs_raw, fore_raw, met_raw)
+                        processed_data = self._process(obs_raw, fore_raw, met_raw, physical_roof_status)
                         weather_state.update(processed_data)
-                        logger.info("Observations, forecast, and MET Norway data successfully updated.")
+                        logger.info("Observations, forecast, MET Norway data, and roof state successfully updated.")
                         
                         # Trigger callbacks (e.g. MQTT publish)
                         for cb in self.on_update_callbacks:
@@ -126,7 +146,7 @@ class TempestCollector:
             fetch_now_event.wait(timeout=2)
             fetch_now_event.clear()
 
-    def _process(self, obs_raw, fore_raw, met_raw):
+    def _process(self, obs_raw, fore_raw, met_raw, physical_roof_status="Unknown"):
         obs_list = obs_raw.get("obs", [])
         if not obs_list:
             logger.warning("Observation array is empty.")
@@ -384,6 +404,7 @@ class TempestCollector:
             "station_id": obs_raw.get("station_id"),
             "station_name": obs_raw.get("station_name"),
             "last_fetched": int(time.time()),
+            "physical_roof_status": physical_roof_status,
             "processed": processed,
             "roof_status": {
                 "allowed": allowed,

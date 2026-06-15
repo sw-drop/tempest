@@ -257,19 +257,22 @@ function updateDashboard() {
     const roof = currentData.roof_status || {};
     const daytimeStatus = proc.daytime_status || 'nighttime';
 
+    const physicalRoof = currentData.physical_roof_status || 'Unknown';
+    const suffix = ` — Roof: ${physicalRoof}`;
+
     // 2. Primary Status Banner (Daytime Override vs Nighttime safety rules)
     if (daytimeStatus === 'daytime') {
         roofBannerEl.className = 'roof-banner status-allowed';
-        roofTitleEl.textContent = 'Daytime: Safe conditions';
+        roofTitleEl.textContent = 'Daytime: Safe conditions' + suffix;
         roofDescEl.textContent = 'Astronomical observations suspended during daylight hours. Observatory closed.';
     } else {
         if (roof.allowed) {
             roofBannerEl.className = 'roof-banner status-allowed';
-            roofTitleEl.textContent = 'Safe conditions';
+            roofTitleEl.textContent = 'Safe conditions' + suffix;
             roofDescEl.textContent = 'All safety thresholds are clear. Safe for night observing.';
         } else {
             roofBannerEl.className = 'roof-banner status-warning';
-            roofTitleEl.textContent = 'Unsafe conditions';
+            roofTitleEl.textContent = 'Unsafe conditions' + suffix;
             if (roof.reasons && roof.reasons.length > 0) {
                 const translated = roof.reasons.map(translateReason);
                 roofDescEl.textContent = `Triggered closure: ${translated.join(', ')}.`;
@@ -277,6 +280,12 @@ function updateDashboard() {
                 roofDescEl.textContent = 'Observatory safety rules violated. Roof must remain closed.';
             }
         }
+    }
+
+    // Update Live All-Sky Camera image src immediately
+    const allskyImg = document.getElementById('allsky-img');
+    if (allskyImg) {
+        allskyImg.src = `https://files-api.tx.starfront.space/status-assets-public/building-0009/allsky/images/image.jpg?t=${Date.now()}`;
     }
 
     // Update Checklist rule labels dynamically depending on temperature unit
@@ -553,6 +562,15 @@ window.addEventListener('DOMContentLoaded', () => {
     setupToggleListeners();
     fetchWeather();
     startTimer();
+
+    // Auto-update All-Sky Camera image every 15 seconds
+    setInterval(() => {
+        if (document.hidden) return;
+        const allskyImg = document.getElementById('allsky-img');
+        if (allskyImg) {
+            allskyImg.src = `https://files-api.tx.starfront.space/status-assets-public/building-0009/allsky/images/image.jpg?t=${Date.now()}`;
+        }
+    }, 15000);
 });
 
 // Trigger re-render on resize to dynamically adjust table chunk sizes
