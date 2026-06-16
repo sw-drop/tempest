@@ -257,22 +257,34 @@ function updateDashboard() {
     const roof = currentData.roof_status || {};
     const daytimeStatus = proc.daytime_status || 'nighttime';
 
+    // Update Physical Roof Status Badge distinctly
     const physicalRoof = currentData.physical_roof_status || 'Unknown';
-    const suffix = ` — Roof: ${physicalRoof}`;
+    const physicalRoofBadge = document.getElementById('physical-roof-badge');
+    if (physicalRoofBadge) {
+        physicalRoofBadge.textContent = `Roof: ${physicalRoof}`;
+        physicalRoofBadge.className = 'roof-badge'; // reset class
+        if (physicalRoof === 'Open') {
+            physicalRoofBadge.classList.add('badge-open');
+        } else if (physicalRoof === 'Closed') {
+            physicalRoofBadge.classList.add('badge-closed');
+        } else {
+            physicalRoofBadge.classList.add('badge-unknown');
+        }
+    }
 
     // 2. Primary Status Banner (Daytime Override vs Nighttime safety rules)
     if (daytimeStatus === 'daytime') {
         roofBannerEl.className = 'roof-banner status-allowed';
-        roofTitleEl.textContent = 'Daytime: Safe conditions' + suffix;
+        roofTitleEl.textContent = 'Daytime: Safe conditions';
         roofDescEl.textContent = 'Astronomical observations suspended during daylight hours. Observatory closed.';
     } else {
         if (roof.allowed) {
             roofBannerEl.className = 'roof-banner status-allowed';
-            roofTitleEl.textContent = 'Safe conditions' + suffix;
+            roofTitleEl.textContent = 'Safe conditions';
             roofDescEl.textContent = 'All safety thresholds are clear. Safe for night observing.';
         } else {
             roofBannerEl.className = 'roof-banner status-warning';
-            roofTitleEl.textContent = 'Unsafe conditions' + suffix;
+            roofTitleEl.textContent = 'Unsafe conditions';
             if (roof.reasons && roof.reasons.length > 0) {
                 const translated = roof.reasons.map(translateReason);
                 roofDescEl.textContent = `Triggered closure: ${translated.join(', ')}.`;

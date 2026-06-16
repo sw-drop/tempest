@@ -53,8 +53,11 @@
                     </svg>
                 </div>
                 <div class="banner-text">
-                    <h2 id="roof-status-title">EVALUATING SAFETY RULES...</h2>
-                    <p id="roof-status-desc">Fetching current observations from Tempest weather station...</p>
+                    <div style="display: flex; align-items: center; gap: 0.8rem; flex-wrap: wrap; margin-bottom: 0.2rem;">
+                        <h2 id="roof-status-title" style="margin: 0; line-height: 1.2;">EVALUATING SAFETY RULES...</h2>
+                        <span id="physical-roof-badge" class="roof-badge badge-unknown">Roof: --</span>
+                    </div>
+                    <p id="roof-status-desc" style="margin: 0;">Fetching current observations from Tempest weather station...</p>
                 </div>
             </div>
             <div class="banner-right" style="font-size: 0.75rem; color: var(--text-secondary); border-left: 1px solid var(--glass-border); padding-left: 1rem; line-height: 1.4; max-width: 380px; transition: var(--transition-smooth);">
@@ -283,6 +286,6 @@
     </div>
 
     <!-- Javascript Script -->
-    <script src="index.js?v=2"></script>
+    <script src="index.js?v=3"></script>
 </body>
 </html>

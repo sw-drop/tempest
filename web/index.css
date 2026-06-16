@@ -692,3 +692,39 @@ body {
         justify-content: space-between;
     }
 }
+
+/* Roof Badge Styling */
+.roof-badge {
+    font-size: 0.72rem;
+    font-weight: 700;
+    padding: 0.2rem 0.55rem;
+    border-radius: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    transition: var(--transition-smooth);
+    border: 1px solid var(--glass-border);
+    background: rgba(255, 255, 255, 0.03);
+    line-height: 1.2;
+}
+
+.roof-badge.badge-open {
+    color: #34d399;
+    border-color: rgba(52, 211, 153, 0.3);
+    background: rgba(52, 211, 153, 0.08);
+}
+
+.roof-badge.badge-closed {
+    color: #f87171;
+    border-color: rgba(248, 113, 113, 0.3);
+    background: rgba(248, 113, 113, 0.08);
+}
+
+.roof-badge.badge-unknown {
+    color: #9ca3af;
+    border-color: rgba(156, 163, 175, 0.3);
+    background: rgba(156, 163, 175, 0.05);
+}
+
