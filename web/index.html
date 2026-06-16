@@ -60,9 +60,19 @@
                     <p id="roof-status-desc" style="margin: 0;">Fetching current observations from Tempest weather station...</p>
                 </div>
             </div>
-            <div class="banner-right" style="font-size: 0.75rem; color: var(--text-secondary); border-left: 1px solid var(--glass-border); padding-left: 1rem; line-height: 1.4; max-width: 380px; transition: var(--transition-smooth);">
-                <strong>Roof Open:</strong> Weather permitting, we schedule the roofs to open around 15 minutes before sunset.<br>
-                <strong>Roof Close:</strong> Roofs are scheduled to close around 5 minutes after sunrise.
+            <div class="banner-right" style="font-size: 0.75rem; color: var(--text-secondary); border-left: 1px solid var(--glass-border); padding-left: 1rem; line-height: 1.4; max-width: 380px; transition: var(--transition-smooth); display: flex; flex-direction: column; gap: 0.4rem; justify-content: center;">
+                <div>
+                    <strong>Roof Open:</strong> 15m before sunset
+                    <div style="font-size: 0.7rem; color: rgba(255, 255, 255, 0.45); margin-top: 0.1rem;">
+                        Anticipated: <span id="roof-open-time" style="color: var(--text-primary); font-weight: 500;">--:--</span> (Sunset: <span id="sunset-time">--:--</span>)
+                    </div>
+                </div>
+                <div>
+                    <strong>Roof Close:</strong> 5m after sunrise
+                    <div style="font-size: 0.7rem; color: rgba(255, 255, 255, 0.45); margin-top: 0.1rem;">
+                        Anticipated: <span id="roof-close-time" style="color: var(--text-primary); font-weight: 500;">--:--</span> (Sunrise: <span id="sunrise-time">--:--</span>)
+                    </div>
+                </div>
             </div>
         </section>
 
@@ -286,6 +296,6 @@
     </div>
 
     <!-- Javascript Script -->
-    <script src="index.js?v=3"></script>
+    <script src="index.js?v=4"></script>
 </body>
 </html>

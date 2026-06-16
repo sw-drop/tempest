@@ -257,6 +257,35 @@ function updateDashboard() {
     const roof = currentData.roof_status || {};
     const daytimeStatus = proc.daytime_status || 'nighttime';
 
+    // Update sunrise/sunset and anticipated open/close times in browser local timezone
+    const sunriseVal = proc.sunrise;
+    const sunsetVal = proc.sunset;
+    if (sunriseVal && sunsetVal) {
+        const formatBrowserTime = (sec) => {
+            const d = new Date(sec * 1000);
+            return new Intl.DateTimeFormat([], {
+                hour: 'numeric',
+                minute: '2-digit',
+                timeZoneName: 'short'
+            }).format(d);
+        };
+
+        const sunriseTime = formatBrowserTime(sunriseVal);
+        const sunsetTime = formatBrowserTime(sunsetVal);
+        const openTime = formatBrowserTime(sunsetVal - 15 * 60);
+        const closeTime = formatBrowserTime(sunriseVal + 5 * 60);
+
+        const roofOpenTimeEl = document.getElementById('roof-open-time');
+        const sunsetTimeEl = document.getElementById('sunset-time');
+        const roofCloseTimeEl = document.getElementById('roof-close-time');
+        const sunriseTimeEl = document.getElementById('sunrise-time');
+
+        if (roofOpenTimeEl) roofOpenTimeEl.textContent = openTime;
+        if (sunsetTimeEl) sunsetTimeEl.textContent = sunsetTime;
+        if (roofCloseTimeEl) roofCloseTimeEl.textContent = closeTime;
+        if (sunriseTimeEl) sunriseTimeEl.textContent = sunriseTime;
+    }
+
     // Update Physical Roof Status Badge distinctly
     const physicalRoof = currentData.physical_roof_status || 'Unknown';
     const physicalRoofBadge = document.getElementById('physical-roof-badge');
