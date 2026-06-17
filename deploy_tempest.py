@@ -58,8 +58,8 @@ def main():
 
     print("\n==================================================")
     print("Deployment completed successfully!")
-    print(f"Weather Monitor Dashboard is now live at: http://192.168.1.70:{host_port}/")
-    print(f"API endpoint is now live at: http://192.168.1.70:{host_port}/api/observations")
+    print(f"Weather Monitor Dashboard is now live at: http://eadu.pillay.net:{host_port}/")
+    print(f"API endpoint is now live at: http://eadu.pillay.net:{host_port}/api/observations")
     print("Waiting 3 seconds to print container status...")
     time.sleep(3)
     run_remote(ssh_host, "docker ps -f name=script-host")
