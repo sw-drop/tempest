@@ -1,7 +1,7 @@
 services:
-  script-host:
-    container_name: script-host
-    image: script-host
+  SFRO-state:
+    container_name: SFRO-state
+    image: sfro-state
     build:
       context: .
       dockerfile: Dockerfile
@@ -17,3 +17,5 @@ services:
       options:
         max-size: "10m"
         max-file: "3"
+    labels:
+      - io.portainer.accesscontrol.users=agent

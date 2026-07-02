@@ -49,7 +49,7 @@ def main():
 
     # 3. Stop existing services using docker compose down & remove legacy standalone container if exists
     print("\nStep 3: Stopping old services and cleaning legacy containers...")
-    run_remote(ssh_host, "docker rm -f script-host || true", check=False)
+    run_remote(ssh_host, "docker rm -f script-host SFRO-state || true", check=False)
     run_remote(ssh_host, f"cd {remote_dir} && docker compose down", check=False)
 
     # 4. Build and start services using docker compose up
@@ -62,7 +62,7 @@ def main():
     print(f"API endpoint is now live at: http://eadu.pillay.net:{host_port}/api/observations")
     print("Waiting 3 seconds to print container status...")
     time.sleep(3)
-    run_remote(ssh_host, "docker ps -f name=script-host")
+    run_remote(ssh_host, "docker ps -f name=SFRO-state")
 
 if __name__ == "__main__":
     main()
