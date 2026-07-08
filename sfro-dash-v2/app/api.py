@@ -111,6 +111,8 @@ def _convert_fits_to_jpeg(fits_path):
 
 @app.route("/api/latest-image/<scope>", methods=["GET"])
 def get_latest_image(scope):
+    import pathlib
+    
     # Mapping for scope directory
     scope_dir_map = {
         "fra400": "FRA400",
@@ -126,16 +128,13 @@ def get_latest_image(scope):
     if not os.path.exists(img_dir):
         img_dir = "."
         
-    search_pattern = os.path.join(img_dir, "*.fits")
-    fits_files = glob.glob(search_pattern)
+    p = pathlib.Path(img_dir)
+    fits_files = list(p.rglob("*.fit*"))
+    fits_files = [str(f) for f in fits_files if f.is_file()]
     
     # For local test prototype (if testing outside Docker)
     if not fits_files and img_dir == ".":
-        search_pattern = f"*{scope_dir_map[safe_scope]}*.fits"
-        fits_files = glob.glob(search_pattern)
-        # If still none, search all FITS in current directory that start with the scope name
-        if not fits_files:
-            fits_files = [f for f in glob.glob("*.fits") if scope_dir_map[safe_scope].lower() in f.lower()]
+        fits_files = [str(f) for f in p.rglob(f"*{scope_dir_map[safe_scope]}*.fit*") if f.is_file()]
 
     if not fits_files:
         # Fallback to local jpeg if it exists (from our quick conversion test)
@@ -153,7 +152,8 @@ def get_latest_image(scope):
     if not img_io:
         return "Error processing image", 500
         
-    filename = os.path.basename(latest_file).replace(".fits", "")
+    # Remove the extension cleanly
+    filename = os.path.splitext(os.path.basename(latest_file))[0]
     resp = send_file(img_io, mimetype='image/jpeg')
     resp.headers["X-Original-Filename"] = filename
     return resp
