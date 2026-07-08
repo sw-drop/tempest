@@ -21,9 +21,10 @@
 
         .parent {
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
+            /* Adjusting columns to give more space to the sky camera and FITS images */
+            grid-template-columns: 1.2fr 1fr 1fr 0.8fr; 
             grid-template-rows: repeat(7, 1fr);
-            gap: 8px; /* Reduced gap */
+            gap: 12px; 
             height: 100%;
             width: 100%;
         }
@@ -52,7 +53,7 @@
         .content-box {
             display: flex;
             flex-direction: column;
-            padding: 0.6rem; /* Reduced padding */
+            padding: 0.8rem;
             width: 100%;
             height: 100%;
             box-sizing: border-box;
@@ -60,8 +61,8 @@
 
         .content-box h3 {
             margin-top: 0;
-            margin-bottom: 0.4rem;
-            font-size: 1.25rem; /* Increased font size */
+            margin-bottom: 0.6rem;
+            font-size: 1.5rem; /* Massively increased for TV */
             color: #a5b4fc;
             text-transform: uppercase;
             letter-spacing: 0.05em;
@@ -127,9 +128,9 @@
         
         <!-- Box 6: FRA400 Capture -->
         <div class="div6">
-            <div class="content-box" style="padding: 0.6rem; overflow-y: auto;">
-                <h3 style="font-size: 1.1rem; margin-bottom: 0.2rem; color: #a5b4fc;">FRA400 Capture</h3>
-                <div id="fra400-capture-text" style="flex-grow: 1; display: flex; flex-direction: column; justify-content: center; font-size: 1.1rem; line-height: 1.4; color: #ccc; white-space: pre-wrap;">
+            <div class="content-box" style="padding: 0.8rem; overflow-y: auto;">
+                <h3 style="font-size: 1.3rem; margin-bottom: 0.4rem; color: #a5b4fc;">FRA400 Capture</h3>
+                <div id="fra400-capture-text" style="flex-grow: 1; display: flex; flex-direction: column; justify-content: center; font-size: 1.3rem; line-height: 1.5; color: #ccc; white-space: pre-wrap;">
                     Loading report...
                 </div>
             </div>
@@ -137,9 +138,9 @@
         
         <!-- Box 7: 75Q Capture -->
         <div class="div7">
-            <div class="content-box" style="padding: 0.6rem; overflow-y: auto;">
-                <h3 style="font-size: 1.1rem; margin-bottom: 0.2rem; color: #a5b4fc;">75Q Capture</h3>
-                <div id="q75-capture-text" style="flex-grow: 1; display: flex; flex-direction: column; justify-content: center; font-size: 1.1rem; line-height: 1.4; color: #ccc; white-space: pre-wrap;">
+            <div class="content-box" style="padding: 0.8rem; overflow-y: auto;">
+                <h3 style="font-size: 1.3rem; margin-bottom: 0.4rem; color: #a5b4fc;">75Q Capture</h3>
+                <div id="q75-capture-text" style="flex-grow: 1; display: flex; flex-direction: column; justify-content: center; font-size: 1.3rem; line-height: 1.5; color: #ccc; white-space: pre-wrap;">
                     Loading report...
                 </div>
             </div>
@@ -148,10 +149,10 @@
         <!-- Box 8: Weather -->
         <div class="div8">
             <div class="content-box">
-                <h3 id="forecast-header">yr.no Night Forecast</h3>
+                <h3 id="forecast-header" style="font-size: 1.4rem;">yr.no Night Forecast</h3>
                 <div class="fc-timeline-container" id="forecast-timeline">
                     <!-- Javascript will render timeline here -->
-                    <div style="color: #ccc; font-size: 1rem;">Loading forecast...</div>
+                    <div style="color: #ccc; font-size: 1.2rem;">Loading forecast...</div>
                 </div>
                 <div id="forecast-text" style="display: none;"></div>
             </div>
@@ -160,9 +161,9 @@
         <!-- Box 10: 75Q Image Placeholder -->
         <div class="div10">
             <div class="content-box" style="padding: 0;">
-                <div style="padding: 0.4rem 0.6rem; background: rgba(0,0,0,0.5); border-bottom: 1px solid rgba(255,255,255,0.1);">
-                    <div id="q75-target" style="font-size: 1.2rem; font-weight: bold; color: #a5b4fc; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">75Q - Target</div>
-                    <div id="q75-title" style="font-size: 0.95rem; color: #ccc; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Filename</div>
+                <div style="padding: 0.6rem 0.8rem; background: rgba(0,0,0,0.5); border-bottom: 1px solid rgba(255,255,255,0.1);">
+                    <div id="q75-target" style="font-size: 1.4rem; font-weight: bold; color: #a5b4fc; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">75Q - Target</div>
+                    <div id="q75-title" style="font-size: 1.1rem; color: #ccc; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Filename</div>
                 </div>
                 <div style="flex-grow: 1; background: #111; display: flex; justify-content: center; align-items: center; overflow: hidden; position: relative;">
                     <img id="q75-img" src="/api/latest-image/75q" alt="75Q Image" style="width: 100%; height: 100%; object-fit: contain; z-index: 1;">
@@ -173,9 +174,9 @@
         <!-- Box 12: FRA400 Image Placeholder -->
         <div class="div12">
             <div class="content-box" style="padding: 0;">
-                <div style="padding: 0.4rem 0.6rem; background: rgba(0,0,0,0.5); border-bottom: 1px solid rgba(255,255,255,0.1);">
-                    <div id="fra400-target" style="font-size: 1.2rem; font-weight: bold; color: #a5b4fc; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">FRA400 - Target</div>
-                    <div id="fra400-title" style="font-size: 0.95rem; color: #ccc; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Filename</div>
+                <div style="padding: 0.6rem 0.8rem; background: rgba(0,0,0,0.5); border-bottom: 1px solid rgba(255,255,255,0.1);">
+                    <div id="fra400-target" style="font-size: 1.4rem; font-weight: bold; color: #a5b4fc; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">FRA400 - Target</div>
+                    <div id="fra400-title" style="font-size: 1.1rem; color: #ccc; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Filename</div>
                 </div>
                 <div style="flex-grow: 1; background: #111; display: flex; justify-content: center; align-items: center; overflow: hidden; position: relative;">
                     <img id="fra400-img" src="/api/latest-image/fra400" alt="FRA400 Image" style="width: 100%; height: 100%; object-fit: contain; z-index: 1;">
@@ -186,12 +187,12 @@
         <!-- Box 13: Roof Opening Tests -->
         <div class="div13">
             <div class="content-box">
-                <h3 style="font-size: 1.15rem; margin-bottom: 0.5rem;">Roof Opening Tests</h3>
-                <ul style="list-style: none; padding: 0; margin: 0; width: 100%; font-size: 1.1rem; color: #ccc; flex-grow: 1; display: flex; flex-direction: column; justify-content: space-between;">
-                    <li style="display: flex; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 4px;"><span>Wind</span> <span id="test-wind" style="color: #fff; font-weight: bold;">--</span></li>
-                    <li style="display: flex; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 4px;"><span>Temp</span> <span id="test-temp" style="color: #fff; font-weight: bold;">--</span></li>
-                    <li style="display: flex; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 4px;"><span>Humidity</span> <span id="test-hum" style="color: #fff; font-weight: bold;">--</span></li>
-                    <li style="display: flex; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 4px;"><span>Dew Pt Margin</span> <span id="test-dp" style="color: #fff; font-weight: bold;">--</span></li>
+                <h3 style="font-size: 1.4rem; margin-bottom: 0.6rem;">Roof Opening Tests</h3>
+                <ul style="list-style: none; padding: 0; margin: 0; width: 100%; font-size: 1.3rem; color: #ccc; flex-grow: 1; display: flex; flex-direction: column; justify-content: space-between;">
+                    <li style="display: flex; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 6px;"><span>Wind</span> <span id="test-wind" style="color: #fff; font-weight: bold;">--</span></li>
+                    <li style="display: flex; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 6px;"><span>Temp</span> <span id="test-temp" style="color: #fff; font-weight: bold;">--</span></li>
+                    <li style="display: flex; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 6px;"><span>Humidity</span> <span id="test-hum" style="color: #fff; font-weight: bold;">--</span></li>
+                    <li style="display: flex; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 6px;"><span>Dew Pt Margin</span> <span id="test-dp" style="color: #fff; font-weight: bold;">--</span></li>
                     <li style="display: flex; justify-content: space-between;"><span>Clouds</span> <span id="test-clouds" style="color: #fff; font-weight: bold;">--</span></li>
                 </ul>
             </div>
@@ -199,7 +200,7 @@
         
         <!-- Box 14: All Atmospheric Parameters Consolidated -->
         <div class="div14">
-            <div class="content-box" style="justify-content: center; gap: 0.4rem; font-size: 1.1rem; padding: 0.8rem;">
+            <div class="content-box" style="justify-content: center; gap: 0.5rem; font-size: 1.3rem; padding: 1rem;">
                 <div style="display: flex; justify-content: space-between;"><span style="color: #9ca3af;">Air Temp:</span> <strong id="val-temp" style="color: #fff;">--</strong></div>
                 <div style="display: flex; justify-content: space-between;"><span style="color: #9ca3af;">Humidity:</span> <strong id="val-hum" style="color: #fff;">--</strong></div>
                 <div style="display: flex; justify-content: space-between;"><span style="color: #9ca3af;">Dew Point:</span> <strong id="val-dp" style="color: #fff;">--</strong></div>
@@ -211,9 +212,9 @@
         
         <!-- Box 15: Roof & Weather Info -->
         <div class="div15">
-            <div class="content-box" style="gap: 0.5rem; padding: 0.8rem;">
-                <h3 style="font-size: 1.25rem; margin-bottom: 0; color: #a5b4fc;">Roof Status</h3>
-                <div id="roof-info-text" style="font-size: 1.15rem; color: #ccc; line-height: 1.5; display: flex; flex-direction: column; justify-content: center; flex-grow: 1;">
+            <div class="content-box" style="gap: 0.5rem; padding: 1rem;">
+                <h3 style="font-size: 1.5rem; margin-bottom: 0; color: #a5b4fc;">Roof Status</h3>
+                <div id="roof-info-text" style="font-size: 1.6rem; font-weight: bold; color: #fff; line-height: 1.4; display: flex; flex-direction: column; justify-content: center; flex-grow: 1;">
                     Loading roof status...
                 </div>
             </div>
