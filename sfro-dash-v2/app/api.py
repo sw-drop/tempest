@@ -154,8 +154,24 @@ def get_latest_image(scope):
         
     # Remove the extension cleanly
     filename = os.path.splitext(os.path.basename(latest_file))[0]
+    
+    # Extract target name from directory structure
+    # Path is typically: /app/images/<scope>/<profile>/<target>/<date>/<file>
+    target_name = ""
+    try:
+        rel_path = pathlib.Path(latest_file).relative_to(img_dir)
+        parts = rel_path.parts
+        # parts[0] is typically the camera/profile (e.g., 75Q_ASI2600)
+        # parts[1] is the target name (e.g., LBN 437 Gecko Nebula)
+        if len(parts) >= 3:
+            target_name = parts[1]
+    except Exception as e:
+        logger.error(f"Failed to parse target name: {e}")
+        
+    full_title = f"{target_name} - {filename}" if target_name else filename
+
     resp = send_file(img_io, mimetype='image/jpeg')
-    resp.headers["X-Original-Filename"] = filename
+    resp.headers["X-Original-Filename"] = full_title
     return resp
 
 # --- REPORTS ENDPOINT ---
