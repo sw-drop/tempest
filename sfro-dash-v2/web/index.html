@@ -14,7 +14,7 @@
             color: white;
             font-family: sans-serif;
             margin: 0;
-            padding: 20px;
+            padding: 10px; /* Reduced overall padding */
             height: 100vh;
             box-sizing: border-box;
         }
@@ -23,7 +23,7 @@
             display: grid;
             grid-template-columns: repeat(4, 1fr);
             grid-template-rows: repeat(7, 1fr);
-            gap: 12px;
+            gap: 8px; /* Reduced gap */
             height: 100%;
             width: 100%;
         }
@@ -52,7 +52,7 @@
         .content-box {
             display: flex;
             flex-direction: column;
-            padding: 1rem;
+            padding: 0.6rem; /* Reduced padding */
             width: 100%;
             height: 100%;
             box-sizing: border-box;
@@ -60,11 +60,33 @@
 
         .content-box h3 {
             margin-top: 0;
-            margin-bottom: 1rem;
-            font-size: 1.1rem;
+            margin-bottom: 0.4rem;
+            font-size: 1.25rem; /* Increased font size */
             color: #a5b4fc;
             text-transform: uppercase;
             letter-spacing: 0.05em;
+        }
+        
+        .forecast-table {
+            width: 100%;
+            text-align: center;
+            font-size: 1.1rem; /* Increased size */
+            margin-bottom: 0.5rem;
+            border-collapse: collapse;
+        }
+        
+        .forecast-table td {
+            padding: 2px 4px;
+        }
+        
+        .fc-row-label {
+            text-align: left;
+            color: #a5b4fc;
+            font-weight: bold;
+        }
+        
+        .fc-emoji-cell {
+            font-size: 1.4rem; /* Larger weather emojis */
         }
 
         .empty-placeholder {
@@ -77,6 +99,14 @@
             height: 100%;
             width: 100%;
         }
+        
+        .fc-timeline-container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            overflow-y: auto;
+            flex-grow: 1;
+        }
     </style>
 </head>
 <body>
@@ -85,9 +115,9 @@
         <!-- Box 1: Live Camera Feed -->
         <div class="div1">
             <div class="content-box" style="padding: 0;">
-                <div style="padding: 0.8rem 1rem; background: rgba(0,0,0,0.5); border-bottom: 1px solid rgba(255,255,255,0.1); display: flex; justify-content: space-between;">
-                    <h3 style="margin: 0; font-size: 1rem;">Live All-Sky Camera</h3>
-                    <div id="conn-status" style="font-size: 0.8rem; color: #10b981;">Connected</div>
+                <div style="padding: 0.6rem 1rem; background: rgba(0,0,0,0.5); border-bottom: 1px solid rgba(255,255,255,0.1); display: flex; justify-content: space-between;">
+                    <h3 style="margin: 0; font-size: 1.2rem;">Live All-Sky Camera</h3>
+                    <div id="conn-status" style="font-size: 1rem; color: #10b981; font-weight: bold;">Connected</div>
                 </div>
                 <div style="flex-grow: 1; background: #111; overflow: hidden; position: relative; display: flex; justify-content: center; align-items: center;">
                     <img id="allsky-img" src="https://files-api.tx.starfront.space/status-assets-public/building-0009/allsky/images/image.jpg" alt="Live All-Sky Camera" style="width: 100%; height: 100%; object-fit: contain;">
@@ -97,9 +127,9 @@
         
         <!-- Box 6: FRA400 Capture -->
         <div class="div6">
-            <div class="content-box" style="padding: 0.8rem; overflow-y: auto;">
-                <h3 style="font-size: 0.85rem; margin-bottom: 0.3rem; color: #a5b4fc;">FRA400 Capture</h3>
-                <div id="fra400-capture-text" style="flex-grow: 1; display: flex; flex-direction: column; justify-content: center; font-size: 0.85rem; color: #ccc; white-space: pre-wrap;">
+            <div class="content-box" style="padding: 0.6rem; overflow-y: auto;">
+                <h3 style="font-size: 1.1rem; margin-bottom: 0.2rem; color: #a5b4fc;">FRA400 Capture</h3>
+                <div id="fra400-capture-text" style="flex-grow: 1; display: flex; flex-direction: column; justify-content: center; font-size: 1.1rem; line-height: 1.4; color: #ccc; white-space: pre-wrap;">
                     Loading report...
                 </div>
             </div>
@@ -107,9 +137,9 @@
         
         <!-- Box 7: 75Q Capture -->
         <div class="div7">
-            <div class="content-box" style="padding: 0.8rem; overflow-y: auto;">
-                <h3 style="font-size: 0.85rem; margin-bottom: 0.3rem; color: #a5b4fc;">75Q Capture</h3>
-                <div id="q75-capture-text" style="flex-grow: 1; display: flex; flex-direction: column; justify-content: center; font-size: 0.85rem; color: #ccc; white-space: pre-wrap;">
+            <div class="content-box" style="padding: 0.6rem; overflow-y: auto;">
+                <h3 style="font-size: 1.1rem; margin-bottom: 0.2rem; color: #a5b4fc;">75Q Capture</h3>
+                <div id="q75-capture-text" style="flex-grow: 1; display: flex; flex-direction: column; justify-content: center; font-size: 1.1rem; line-height: 1.4; color: #ccc; white-space: pre-wrap;">
                     Loading report...
                 </div>
             </div>
@@ -118,18 +148,21 @@
         <!-- Box 8: Weather -->
         <div class="div8">
             <div class="content-box">
-                <h3>yr.no Night Forecast</h3>
-                <div id="forecast-text" style="flex-grow: 1; background: rgba(0,0,0,0.3); border: 1px dashed rgba(255,255,255,0.1); border-radius: 6px; display: flex; flex-direction: column; justify-content: center; padding: 1rem; font-size: 0.85rem; color: #ccc; white-space: pre-wrap; overflow-y: auto;">
-                    Loading forecast...
+                <h3 id="forecast-header">yr.no Night Forecast</h3>
+                <div class="fc-timeline-container" id="forecast-timeline">
+                    <!-- Javascript will render timeline here -->
+                    <div style="color: #ccc; font-size: 1rem;">Loading forecast...</div>
                 </div>
+                <div id="forecast-text" style="display: none;"></div>
             </div>
         </div>
         
         <!-- Box 10: 75Q Image Placeholder -->
         <div class="div10">
             <div class="content-box" style="padding: 0;">
-                <div style="padding: 0.5rem 1rem; background: rgba(0,0,0,0.5); border-bottom: 1px solid rgba(255,255,255,0.1);">
-                    <h3 id="q75-title" style="margin: 0; font-size: 0.85rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">75Q - Last Image</h3>
+                <div style="padding: 0.4rem 0.6rem; background: rgba(0,0,0,0.5); border-bottom: 1px solid rgba(255,255,255,0.1);">
+                    <div id="q75-target" style="font-size: 1.2rem; font-weight: bold; color: #a5b4fc; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">75Q - Target</div>
+                    <div id="q75-title" style="font-size: 0.95rem; color: #ccc; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Filename</div>
                 </div>
                 <div style="flex-grow: 1; background: #111; display: flex; justify-content: center; align-items: center; overflow: hidden; position: relative;">
                     <img id="q75-img" src="/api/latest-image/75q" alt="75Q Image" style="width: 100%; height: 100%; object-fit: contain; z-index: 1;">
@@ -140,8 +173,9 @@
         <!-- Box 12: FRA400 Image Placeholder -->
         <div class="div12">
             <div class="content-box" style="padding: 0;">
-                <div style="padding: 0.5rem 1rem; background: rgba(0,0,0,0.5); border-bottom: 1px solid rgba(255,255,255,0.1);">
-                    <h3 id="fra400-title" style="margin: 0; font-size: 0.85rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">FRA400 - Last Image</h3>
+                <div style="padding: 0.4rem 0.6rem; background: rgba(0,0,0,0.5); border-bottom: 1px solid rgba(255,255,255,0.1);">
+                    <div id="fra400-target" style="font-size: 1.2rem; font-weight: bold; color: #a5b4fc; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">FRA400 - Target</div>
+                    <div id="fra400-title" style="font-size: 0.95rem; color: #ccc; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Filename</div>
                 </div>
                 <div style="flex-grow: 1; background: #111; display: flex; justify-content: center; align-items: center; overflow: hidden; position: relative;">
                     <img id="fra400-img" src="/api/latest-image/fra400" alt="FRA400 Image" style="width: 100%; height: 100%; object-fit: contain; z-index: 1;">
@@ -152,12 +186,12 @@
         <!-- Box 13: Roof Opening Tests -->
         <div class="div13">
             <div class="content-box">
-                <h3 style="font-size: 0.9rem; margin-bottom: 0.5rem;">Roof Opening Tests</h3>
-                <ul style="list-style: none; padding: 0; margin: 0; width: 100%; font-size: 0.85rem; color: #ccc; flex-grow: 1; display: flex; flex-direction: column; justify-content: space-between;">
-                    <li style="display: flex; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 2px;"><span>Wind</span> <span id="test-wind" style="color: #fff; font-weight: bold;">--</span></li>
-                    <li style="display: flex; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 2px;"><span>Temp</span> <span id="test-temp" style="color: #fff; font-weight: bold;">--</span></li>
-                    <li style="display: flex; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 2px;"><span>Humidity</span> <span id="test-hum" style="color: #fff; font-weight: bold;">--</span></li>
-                    <li style="display: flex; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 2px;"><span>Dew Pt Margin</span> <span id="test-dp" style="color: #fff; font-weight: bold;">--</span></li>
+                <h3 style="font-size: 1.15rem; margin-bottom: 0.5rem;">Roof Opening Tests</h3>
+                <ul style="list-style: none; padding: 0; margin: 0; width: 100%; font-size: 1.1rem; color: #ccc; flex-grow: 1; display: flex; flex-direction: column; justify-content: space-between;">
+                    <li style="display: flex; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 4px;"><span>Wind</span> <span id="test-wind" style="color: #fff; font-weight: bold;">--</span></li>
+                    <li style="display: flex; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 4px;"><span>Temp</span> <span id="test-temp" style="color: #fff; font-weight: bold;">--</span></li>
+                    <li style="display: flex; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 4px;"><span>Humidity</span> <span id="test-hum" style="color: #fff; font-weight: bold;">--</span></li>
+                    <li style="display: flex; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 4px;"><span>Dew Pt Margin</span> <span id="test-dp" style="color: #fff; font-weight: bold;">--</span></li>
                     <li style="display: flex; justify-content: space-between;"><span>Clouds</span> <span id="test-clouds" style="color: #fff; font-weight: bold;">--</span></li>
                 </ul>
             </div>
@@ -165,7 +199,7 @@
         
         <!-- Box 14: All Atmospheric Parameters Consolidated -->
         <div class="div14">
-            <div class="content-box" style="justify-content: center; gap: 0.2rem; font-size: 0.8rem; padding: 0.8rem;">
+            <div class="content-box" style="justify-content: center; gap: 0.4rem; font-size: 1.1rem; padding: 0.8rem;">
                 <div style="display: flex; justify-content: space-between;"><span style="color: #9ca3af;">Air Temp:</span> <strong id="val-temp" style="color: #fff;">--</strong></div>
                 <div style="display: flex; justify-content: space-between;"><span style="color: #9ca3af;">Humidity:</span> <strong id="val-hum" style="color: #fff;">--</strong></div>
                 <div style="display: flex; justify-content: space-between;"><span style="color: #9ca3af;">Dew Point:</span> <strong id="val-dp" style="color: #fff;">--</strong></div>
@@ -178,8 +212,8 @@
         <!-- Box 15: Roof & Weather Info -->
         <div class="div15">
             <div class="content-box" style="gap: 0.5rem; padding: 0.8rem;">
-                <h3 style="font-size: 0.85rem; margin-bottom: 0; color: #a5b4fc;">Roof Status</h3>
-                <div id="roof-info-text" style="font-size: 0.75rem; color: #ccc; line-height: 1.4; display: flex; flex-direction: column; justify-content: center; flex-grow: 1;">
+                <h3 style="font-size: 1.25rem; margin-bottom: 0; color: #a5b4fc;">Roof Status</h3>
+                <div id="roof-info-text" style="font-size: 1.15rem; color: #ccc; line-height: 1.5; display: flex; flex-direction: column; justify-content: center; flex-grow: 1;">
                     Loading roof status...
                 </div>
             </div>
@@ -188,18 +222,19 @@
         <!-- Box 16: Local Time (UK) -->
         <div class="div16">
             <div class="content-box" style="align-items: center; justify-content: center; text-align: center; padding: 0.5rem;">
-                <div id="time-uk" style="font-size: 2rem; font-weight: bold; color: #fff; line-height: 1.1;">--:--:--</div>
-                <div style="font-size: 0.8rem; color: #10b981; text-transform: uppercase; margin-top: 4px; letter-spacing: 0.05em;">Local Time (UK/BST)</div>
+                <div id="time-uk" style="font-size: 2.5rem; font-weight: bold; color: #fff; line-height: 1.1;">--:--:--</div>
+                <div style="font-size: 0.95rem; color: #10b981; text-transform: uppercase; margin-top: 4px; letter-spacing: 0.05em;">Local Time (UK/BST)</div>
             </div>
         </div>
         
         <!-- Box 17: US Central Time -->
         <div class="div17">
             <div class="content-box" style="align-items: center; justify-content: center; text-align: center; padding: 0.5rem;">
-                <div id="time-us" style="font-size: 2rem; font-weight: bold; color: #fff; line-height: 1.1;">--:--:--</div>
-                <div style="font-size: 0.8rem; color: #00d2fc; text-transform: uppercase; margin-top: 4px; letter-spacing: 0.05em;">US Central Time</div>
+                <div id="time-us" style="font-size: 2.5rem; font-weight: bold; color: #fff; line-height: 1.1;">--:--:--</div>
+                <div style="font-size: 0.95rem; color: #00d2fc; text-transform: uppercase; margin-top: 4px; letter-spacing: 0.05em;">US Central Time</div>
             </div>
         </div>
+
         
     </div>
 

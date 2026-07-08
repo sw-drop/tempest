@@ -41,6 +41,21 @@ async function fetchWeather() {
     }
 }
 
+// Map MET Norway symbol codes to emojis
+function getSymbolEmoji(symbolCode) {
+    if (!symbolCode) return '☁️';
+    const code = symbolCode.toLowerCase();
+    if (code.includes('clearsky')) return code.includes('night') ? '🌙' : '☀️';
+    if (code.includes('fair')) return code.includes('night') ? '🌙' : '🌤️';
+    if (code.includes('partlycloudy')) return '⛅';
+    if (code.includes('cloudy')) return '☁️';
+    if (code.includes('rain') || code.includes('sleet')) return '🌧️';
+    if (code.includes('snow')) return '❄️';
+    if (code.includes('thunder')) return '⛈️';
+    if (code.includes('fog')) return '🌫️';
+    return '☁️';
+}
+
 function updateWeatherUI() {
     if (!currentData) return;
     const proc = currentData.processed || {};
@@ -69,6 +84,56 @@ function updateWeatherUI() {
     if (checks.humidity) setCheck('test-hum', `${checks.humidity.val} %`, checks.humidity.ok);
     if (checks.dew_point_margin) setCheck('test-dp', `${checks.dew_point_margin.val} °F`, checks.dew_point_margin.ok);
     if (checks.clouds) setCheck('test-clouds', checks.clouds.val !== 'N/A' ? `${checks.clouds.val} %` : 'N/A', checks.clouds.ok);
+    
+    // 5. Update Night Conditions Forecast
+    const nightForecast = proc.night_forecast || [];
+    const forecastTimeline = document.getElementById('forecast-timeline');
+    
+    if (nightForecast && nightForecast.length > 0) {
+        forecastTimeline.innerHTML = '';
+        const tz = (currentData.raw && currentData.raw.timezone) || 'America/Chicago';
+        
+        // Chunk forecast size based on screen width
+        const width = window.innerWidth;
+        const chunkSize = width < 600 ? 5 : (width < 900 ? 8 : 12);
+        
+        for (let i = 0; i < nightForecast.length; i += chunkSize) {
+            const chunk = nightForecast.slice(i, i + chunkSize);
+            
+            let timeCells = `<td class="fc-row-label">Time</td>`;
+            let condCells = `<td class="fc-row-label">Cond</td>`;
+            let cloudCells = `<td class="fc-row-label">Cloud</td>`;
+            let tempCells = `<td class="fc-row-label">Temp</td>`;
+
+            chunk.forEach(item => {
+                const date = new Date(item.timestamp * 1000);
+                const timeStr = new Intl.DateTimeFormat('en-US', {
+                    hour: 'numeric',
+                    timeZone: tz
+                }).format(date);
+                
+                const tempStr = `${item.temp_c.toFixed(0)}°C`;
+                const emoji = getSymbolEmoji(item.symbol_code);
+
+                timeCells += `<td>${timeStr}</td>`;
+                condCells += `<td class="fc-emoji-cell" title="${item.symbol_code}">${emoji}</td>`;
+                cloudCells += `<td>${item.cloud.toFixed(0)}%</td>`;
+                tempCells += `<td>${tempStr}</td>`;
+            });
+
+            const table = document.createElement('table');
+            table.className = 'forecast-table';
+            table.innerHTML = `
+                <tr>${timeCells}</tr>
+                <tr>${condCells}</tr>
+                <tr>${cloudCells}</tr>
+                <tr>${tempCells}</tr>
+            `;
+            forecastTimeline.appendChild(table);
+        }
+    } else {
+        forecastTimeline.innerHTML = '<div style="color: #ccc; font-size: 1rem; padding: 1rem;">Night forecast currently unavailable.</div>';
+    }
 }
 
 // Reports & Captures
@@ -78,14 +143,9 @@ async function fetchReports() {
         if (response.ok) {
             const data = await response.json();
             
-            // The capture script returns a single text output containing both scopes and roof info.
-            // We can display the raw text in the boxes, or try to split it.
-            // For now, since the user wanted FRA400 in Box 6 and 75Q in Box 7, 
-            // and Roof & Weather in Box 15, let's split the text based on headings.
             const captureText = data.capture || "";
             const forecastText = data.forecast || "";
             
-            // Simple string splitting logic
             let fraPart = captureText.split("FRA400:")[1] || "";
             if (fraPart) fraPart = fraPart.split("* 75Q:")[0].trim();
             
@@ -96,9 +156,9 @@ async function fetchReports() {
             
             document.getElementById('fra400-capture-text').textContent = fraPart || "No data.";
             document.getElementById('q75-capture-text').textContent = q75Part || "No data.";
-            document.getElementById('roof-info-text').textContent = roofPart ? "🏠" + roofPart : "No roof events recorded.";
+            document.getElementById('roof-info-text').textContent = roofPart ? "🏠 " + roofPart : "No roof events recorded.";
             
-            document.getElementById('forecast-text').textContent = forecastText || "Forecast unavailable.";
+            document.getElementById('forecast-text').textContent = forecastText;
         }
     } catch (e) {
         console.error("Reports error", e);
@@ -113,9 +173,17 @@ async function fetchFITSImage(scope, imgId, titleId) {
             const blob = await response.blob();
             const objectURL = URL.createObjectURL(blob);
             document.getElementById(imgId).src = objectURL;
-            const filename = response.headers.get("X-Original-Filename");
-            if (filename) {
-                document.getElementById(titleId).textContent = filename;
+            const filenameHeader = response.headers.get("X-Original-Filename");
+            if (filenameHeader) {
+                const parts = filenameHeader.split(" - ");
+                if (parts.length > 1) {
+                    const targetEl = document.getElementById(`${scope}-target`);
+                    const titleEl = document.getElementById(titleId);
+                    if (targetEl) targetEl.textContent = parts[0];
+                    if (titleEl) titleEl.textContent = parts.slice(1).join(" - ");
+                } else {
+                    document.getElementById(titleId).textContent = filenameHeader;
+                }
             }
         }
     } catch (e) {
