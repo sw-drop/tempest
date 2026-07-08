@@ -1,0 +1,18 @@
+
+**SFRO**
+If the observatory roof is open
+1. 1 - Sky cam view from SFRO 
+2.  6 & 7 -Overnight image capture volumes from Telegram feed - update every 5 mins
+3. 8 - yr.no Weather forecast until 1hr after dawn
+4. 10 & 12 - Individual scope last image captured
+5. 13 SFRO Roof forecast from Telegram feed
+6. 14 Get flats indicator (if clouds < 3%) and countdown to sun angle
+7. 15 Backup report (as run at 07:00 UTC already)
+8. 16 - Observatory time
+9. 17 - Local time
+
+
+Operations
+13. Backup report (as run at 07:00 UTC already)
+14. System(s) statuses
+
