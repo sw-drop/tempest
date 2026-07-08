@@ -25,12 +25,12 @@ def main():
     host_port = "8023"
     
     print("==================================================")
-    # 1. Create target directories on Eadu
-    print(f"Step 1: Preparing remote directory {remote_dir} on Eadu...")
+    # 1. Create target directories on Pi5-1
+    print(f"Step 1: Preparing remote directory {remote_dir} on {ssh_host}...")
     run_remote(ssh_host, f"mkdir -p {remote_dir}/extra_scripts")
 
-    # 2. Sync local files to Eadu (excluding scripts and temp files)
-    print("\nStep 2: Syncing codebase to Eadu...")
+    # 2. Sync local files to Pi5-1 (excluding scripts and temp files)
+    print(f"\nStep 2: Syncing codebase to {ssh_host}...")
     exclude_list = [
         ".git",
         "*.pyc",

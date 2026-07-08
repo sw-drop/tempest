@@ -75,6 +75,16 @@ function updateWeatherUI() {
     
     // Wind and Clouds from tests
     if (checks.wind) setCheck('test-wind', `${checks.wind.val} mph`, checks.wind.ok);
+    
+    // Wind Gust
+    const wg = metrics.wind_gust_mph !== null ? `${metrics.wind_gust_mph.toFixed(1)} mph` : '--';
+    if (checks.wind_gust) {
+        setCheck('test-wg', wg, checks.wind_gust.ok);
+    } else {
+        const el = document.getElementById('test-wg');
+        if (el) el.textContent = wg;
+    }
+    
     if (checks.clouds) setCheck('test-clouds', checks.clouds.val !== 'N/A' ? `${checks.clouds.val} %` : 'N/A', checks.clouds.ok);
     
     // Temp (Requested in C)
@@ -117,7 +127,6 @@ function updateWeatherUI() {
             let timeCells = `<td class="fc-row-label">Time</td>`;
             let condCells = `<td class="fc-row-label">Cond</td>`;
             let cloudCells = `<td class="fc-row-label">Cloud</td>`;
-            let tempCells = `<td class="fc-row-label">Temp</td>`;
 
             chunk.forEach(item => {
                 const date = new Date(item.timestamp * 1000);
@@ -126,13 +135,11 @@ function updateWeatherUI() {
                     timeZone: tz
                 }).format(date);
                 
-                const tempStr = `${item.temp_c.toFixed(0)}°C`;
                 const emoji = getSymbolEmoji(item.symbol_code);
 
                 timeCells += `<td>${timeStr}</td>`;
                 condCells += `<td class="fc-emoji-cell" title="${item.symbol_code}">${emoji}</td>`;
                 cloudCells += `<td>${item.cloud.toFixed(0)}%</td>`;
-                tempCells += `<td>${tempStr}</td>`;
             });
 
             const table = document.createElement('table');
@@ -141,12 +148,27 @@ function updateWeatherUI() {
                 <tr>${timeCells}</tr>
                 <tr>${condCells}</tr>
                 <tr>${cloudCells}</tr>
-                <tr>${tempCells}</tr>
             `;
             forecastTimeline.appendChild(table);
         }
     } else {
         forecastTimeline.innerHTML = '<div style="color: #ccc; font-size: 1rem; padding: 1rem;">Night forecast currently unavailable.</div>';
+    }
+}
+
+// Auto-scale font size for roof status so it never clips
+function fitRoofText() {
+    const el = document.getElementById('roof-info-text');
+    if (!el) return;
+    
+    // Reset to maximum desired size
+    let fontSize = 1.6;
+    el.style.fontSize = fontSize + 'rem';
+    
+    // Shrink while content overflows container
+    while (el.scrollHeight > el.clientHeight && fontSize > 0.8) {
+        fontSize -= 0.1;
+        el.style.fontSize = fontSize + 'rem';
     }
 }
 
@@ -178,6 +200,9 @@ async function fetchReports() {
             // For roof, just display the payload without the emoji if they wanted it gone
             document.getElementById('roof-info-text').textContent = roofPart || "No roof events recorded.";
             
+            // Adjust font size dynamically
+            setTimeout(fitRoofText, 50);
+            
             document.getElementById('forecast-text').textContent = forecastText;
         }
     } catch (e) {
@@ -196,13 +221,15 @@ async function fetchFITSImage(scope, imgId, titleId) {
             const filenameHeader = response.headers.get("X-Original-Filename");
             if (filenameHeader) {
                 const parts = filenameHeader.split(" - ");
+                const targetEl = document.getElementById(`${scope}-target`);
+                const titleEl = document.getElementById(titleId);
+                
                 if (parts.length > 1) {
-                    const targetEl = document.getElementById(`${scope}-target`);
-                    const titleEl = document.getElementById(titleId);
-                    if (targetEl) targetEl.textContent = parts[0];
+                    if (targetEl) targetEl.textContent = `${scope.toUpperCase()} - ${parts[0]}`;
                     if (titleEl) titleEl.textContent = parts.slice(1).join(" - ");
                 } else {
-                    document.getElementById(titleId).textContent = filenameHeader;
+                    if (targetEl) targetEl.textContent = scope.toUpperCase();
+                    if (titleEl) titleEl.textContent = filenameHeader;
                 }
             }
         }
@@ -216,7 +243,7 @@ window.addEventListener('DOMContentLoaded', () => {
     fetchWeather();
     fetchReports();
     fetchFITSImage('fra400', 'fra400-img', 'fra400-title');
-    fetchFITSImage('75q', 'q75-img', 'q75-title');
+    fetchFITSImage('75q', '75q-img', '75q-title');
     
     // Poll weather every 60s
     setInterval(fetchWeather, 60000);
@@ -225,7 +252,7 @@ window.addEventListener('DOMContentLoaded', () => {
     setInterval(() => {
         fetchReports();
         fetchFITSImage('fra400', 'fra400-img', 'fra400-title');
-        fetchFITSImage('75q', 'q75-img', 'q75-title');
+        fetchFITSImage('75q', '75q-img', '75q-title');
     }, 300000);
     
     // Auto-update All-Sky Camera every 15s
@@ -235,4 +262,7 @@ window.addEventListener('DOMContentLoaded', () => {
             allskyImg.src = `https://files-api.tx.starfront.space/status-assets-public/building-0009/allsky/images/image.jpg?t=${Date.now()}`;
         }
     }, 15000);
+    
+    // Handle resizing for roof text
+    window.addEventListener('resize', fitRoofText);
 });
