@@ -153,10 +153,16 @@ async function fetchReports() {
             if (q75Part) q75Part = q75Part.split("🏠")[0].trim();
             
             let roofPart = captureText.split("🏠")[1] || "";
+            if (roofPart) {
+                // Strip out "Roof & Weather" header and "• Latest Roof:"
+                roofPart = roofPart.replace("Roof & Weather", "").replace("• Latest Roof:", "").trim();
+            }
             
             document.getElementById('fra400-capture-text').textContent = fraPart || "No data.";
             document.getElementById('q75-capture-text').textContent = q75Part || "No data.";
-            document.getElementById('roof-info-text').textContent = roofPart ? "🏠 " + roofPart : "No roof events recorded.";
+            
+            // For roof, just display the payload without the emoji if they wanted it gone
+            document.getElementById('roof-info-text').textContent = roofPart || "No roof events recorded.";
             
             document.getElementById('forecast-text').textContent = forecastText;
         }
