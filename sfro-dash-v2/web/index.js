@@ -62,28 +62,42 @@ function updateWeatherUI() {
     const metrics = proc.metrics || {};
     const roof = currentData.roof_status || {};
     
-    // Metrics
-    document.getElementById('val-temp').textContent = metrics.temp_c !== null ? `${metrics.temp_c.toFixed(1)}°C` : '--';
-    document.getElementById('val-hum').textContent = metrics.humidity !== null ? `${metrics.humidity}%` : '--';
-    document.getElementById('val-dp').textContent = metrics.dew_point_c !== null ? `${metrics.dew_point_c.toFixed(1)}°C` : '--';
-    document.getElementById('val-press').textContent = metrics.pressure_hpa !== null ? `${metrics.pressure_hpa.toFixed(0)} hPa` : '--';
-    document.getElementById('val-solar').textContent = metrics.solar_radiation !== null ? `${metrics.solar_radiation} W/m²` : '--';
-    document.getElementById('val-precip').textContent = metrics.precip_in !== null ? `${metrics.precip_in.toFixed(2)} in` : '--';
-    
-    // Roof Opening Tests
+    // 4. Update Atmospheric Data & Tests
     const checks = roof.checks || {};
     
     function setCheck(id, valStr, ok) {
         const el = document.getElementById(id);
-        el.textContent = valStr;
-        el.style.color = ok ? "#10b981" : "#ef4444";
+        if (el) {
+            el.textContent = valStr;
+            el.style.color = ok ? "#10b981" : "#ef4444";
+        }
     }
     
+    // Wind and Clouds from tests
     if (checks.wind) setCheck('test-wind', `${checks.wind.val} mph`, checks.wind.ok);
-    if (checks.temperature) setCheck('test-temp', `${checks.temperature.val} °F`, checks.temperature.ok);
-    if (checks.humidity) setCheck('test-hum', `${checks.humidity.val} %`, checks.humidity.ok);
-    if (checks.dew_point_margin) setCheck('test-dp', `${checks.dew_point_margin.val} °F`, checks.dew_point_margin.ok);
     if (checks.clouds) setCheck('test-clouds', checks.clouds.val !== 'N/A' ? `${checks.clouds.val} %` : 'N/A', checks.clouds.ok);
+    
+    // Temp (Requested in C)
+    const tempC = metrics.temp_c !== null ? `${metrics.temp_c.toFixed(1)} °C` : '--';
+    if (checks.temperature) setCheck('test-temp', tempC, checks.temperature.ok);
+    
+    // Humidity
+    if (checks.humidity) setCheck('test-hum', `${checks.humidity.val} %`, checks.humidity.ok);
+    
+    // Dew Point and Margin
+    const dpC = metrics.dew_point_c !== null ? `${metrics.dew_point_c.toFixed(1)} °C` : '--';
+    const dpMarginC = metrics.dew_point_margin_c !== null ? `${metrics.dew_point_margin_c.toFixed(1)} °C` : '--';
+    
+    if (document.getElementById('val-dp')) {
+        document.getElementById('val-dp').textContent = dpC;
+        // Make it inherit the normal white color, not explicitly color-coded unless it's a test
+    }
+    if (checks.dew_point_margin) setCheck('test-dp', dpMarginC, checks.dew_point_margin.ok);
+    
+    // Precip
+    if (document.getElementById('val-precip')) {
+        document.getElementById('val-precip').textContent = metrics.precip_mm !== null ? `${metrics.precip_mm.toFixed(2)} mm` : '--';
+    }
     
     // 5. Update Night Conditions Forecast
     const nightForecast = proc.night_forecast || [];
