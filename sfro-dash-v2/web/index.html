@@ -34,9 +34,9 @@
         .div10 { grid-column: 5 / span 4; grid-row: 7 / span 6; } /* 75Q FITS */
         .div6 { grid-column: 1 / span 2; grid-row: 8 / span 5; } /* FRA400 Capture */
         .div7 { grid-column: 3 / span 2; grid-row: 8 / span 5; } /* 75Q Capture */
-        .div8 { grid-column: 9 / span 4; grid-row: 1 / span 4; } /* Forecast */
-        .div13 { grid-column: 9 / span 4; grid-row: 5 / span 3; } /* Atmos Params */
-        .div15 { grid-column: 9 / span 4; grid-row: 8 / span 4; } /* Roof Status */
+        .div8 { grid-column: 9 / span 4; grid-row: 1 / span 3; } /* Forecast */
+        .div13 { grid-column: 9 / span 4; grid-row: 4 / span 3; } /* Atmos Params */
+        .div15 { grid-column: 9 / span 4; grid-row: 7 / span 5; } /* Roof Status */
         .div16 { grid-column: 9 / span 2; grid-row: 12 / span 1; } /* UK Time */
         .div17 { grid-column: 11 / span 2; grid-row: 12 / span 1; } /* US Time */
 
@@ -149,7 +149,7 @@
         <!-- Box 8: Weather -->
         <div class="div8">
             <div class="content-box">
-                <h3 id="forecast-header" style="font-size: 1.4rem;">yr.no Night Forecast</h3>
+                <h3 id="forecast-header" style="font-size: 1.4rem;">Night Forecast</h3>
                 <div class="fc-timeline-container" id="forecast-timeline">
                     <!-- Javascript will render timeline here -->
                     <div style="color: #ccc; font-size: 1.2rem;">Loading forecast...</div>
@@ -204,7 +204,7 @@
         <div class="div15">
             <div class="content-box" style="gap: 0.5rem; padding: 1rem;">
                 <h3 style="font-size: 1.5rem; margin-bottom: 0; color: #a5b4fc;">Roof Status</h3>
-                <div id="roof-info-text" style="font-size: 1.6rem; font-weight: bold; color: #fff; line-height: 1.4; display: flex; flex-direction: column; justify-content: center; flex-grow: 1; overflow-y: auto;">
+                <div id="roof-info-text" style="font-size: 1.6rem; font-weight: bold; color: #fff; line-height: 1.4; display: flex; flex-direction: column; justify-content: center; flex-grow: 1; overflow-y: auto; white-space: pre-wrap;">
                     Loading roof status...
                 </div>
             </div>

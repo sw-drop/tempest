@@ -52,6 +52,11 @@ def get_local_time_string(utc_dt):
     local_dt = utc_dt.astimezone(ZoneInfo("America/Chicago"))
     return local_dt.strftime("%Y-%m-%d %H:%M:%S Central")
 
+def get_local_time_string_short(utc_dt):
+    utc_dt = utc_dt.replace(tzinfo=ZoneInfo("UTC"))
+    local_dt = utc_dt.astimezone(ZoneInfo("America/Chicago"))
+    return local_dt.strftime("%H:%M Central")
+
 def main():
     # Calculate the logical "astrophotography night" (current time - 12 hours)
     astro_night = datetime.now(timezone.utc).replace(tzinfo=None) - timedelta(hours=12)
@@ -93,7 +98,7 @@ def main():
                 print(f"    * Target: {t} x {count} Images")
                 
     # --- 2. Roof & Weather Reports ---
-    print("\n🏠 **Roof & Weather Operations**")
+    print("\n🏠")
     announcements = fetch_messages(CHANNELS["announcements"], limit=20)
     
     latest_roof = "Unknown"
@@ -118,13 +123,24 @@ def main():
                     latest_roof_time = msg_time
                     
     if latest_roof_time:
-        print(f"  * Latest Roof Status: {latest_roof} (at {get_local_time_string(latest_roof_time)})")
+        status = latest_roof.strip().rstrip('.')
+        if "opening" in status.lower():
+            status_text = "🟢 OPENING"
+        elif "closing" in status.lower():
+            status_text = "🔴 CLOSING"
+        elif "open" in status.lower():
+            status_text = "🟢 OPEN"
+        elif "closed" in status.lower():
+            status_text = "🔴 CLOSED"
+        else:
+            status_text = status.upper()
+        print(f"Roof Status: {status_text} (at {get_local_time_string_short(latest_roof_time)})")
     else:
-        print("  * Latest Roof Status: No events found.")
+        print("Roof Status: No events found")
         
     if latest_report_time:
-        print(f"\n🌦️ **Latest Weather Report** (issued {get_local_time_string(latest_report_time)})")
-        print("\n".join(f"  > {line}" for line in latest_report.split("\n")))
+        print()
+        print(latest_report.strip())
 
 if __name__ == "__main__":
     main()
