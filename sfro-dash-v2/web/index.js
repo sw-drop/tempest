@@ -171,17 +171,17 @@ function updateWeatherUI() {
     }
 }
 
-// Auto-scale font size for roof status so it never clips
-function fitRoofText() {
-    const el = document.getElementById('roof-info-text');
+// Auto-scale font size so it never clips
+function fitText(elementId, maxFontSize) {
+    const el = document.getElementById(elementId);
     if (!el) return;
     
     // Reset to maximum desired size
-    let fontSize = 1.6;
+    let fontSize = maxFontSize;
     el.style.fontSize = fontSize + 'rem';
     
     // Shrink while content overflows container
-    while (el.scrollHeight > el.clientHeight && fontSize > 0.8) {
+    while (el.scrollHeight > el.clientHeight && fontSize > 0.6) {
         fontSize -= 0.1;
         el.style.fontSize = fontSize + 'rem';
     }
@@ -198,10 +198,10 @@ async function fetchReports() {
             const forecastText = data.forecast || "";
             
             let fraPart = captureText.split("FRA400:")[1] || "";
-            if (fraPart) fraPart = fraPart.split("75Q:")[0].replace(/[*•]/g, "").trim();
+            if (fraPart) fraPart = fraPart.split("75Q:")[0].replace(/[*•]/g, "").replace(/Target:/g, "").trim();
             
             let q75Part = captureText.split("75Q:")[1] || "";
-            if (q75Part) q75Part = q75Part.split("🏠")[0].replace(/[*•]/g, "").trim();
+            if (q75Part) q75Part = q75Part.split("🏠")[0].replace(/[*•]/g, "").replace(/Target:/g, "").trim();
             
             let roofPart = captureText.split("🏠")[1] || "";
             if (roofPart) {
@@ -216,7 +216,11 @@ async function fetchReports() {
             document.getElementById('roof-info-text').textContent = roofPart || "No roof events recorded.";
             
             // Adjust font size dynamically
-            setTimeout(fitRoofText, 50);
+            setTimeout(() => {
+                fitText('roof-info-text', 1.6);
+                fitText('fra400-capture-text', 1.3);
+                fitText('q75-capture-text', 1.3);
+            }, 50);
             
             document.getElementById('forecast-text').textContent = forecastText;
         }
@@ -278,6 +282,10 @@ window.addEventListener('DOMContentLoaded', () => {
         }
     }, 15000);
     
-    // Handle resizing for roof text
-    window.addEventListener('resize', fitRoofText);
+    // Handle resizing for dynamic text
+    window.addEventListener('resize', () => {
+        fitText('roof-info-text', 1.6);
+        fitText('fra400-capture-text', 1.3);
+        fitText('q75-capture-text', 1.3);
+    });
 });
