@@ -109,7 +109,22 @@ function updateWeatherUI() {
         document.getElementById('val-precip').textContent = metrics.precip_mm !== null ? `${metrics.precip_mm.toFixed(2)} mm` : '--';
     }
     
-    // 5. Update Night Conditions Forecast
+    // 5. Update Night Conditions Forecast and Roof Header
+    const roofPhys = currentData.physical_roof_status || "Unknown";
+    const headerEl = document.getElementById('forecast-header');
+    if (headerEl) {
+        if (roofPhys === "Open") {
+            headerEl.textContent = "ROOF OPEN";
+            headerEl.style.color = "#10b981";
+        } else if (roofPhys === "Closed") {
+            headerEl.textContent = "ROOF CLOSED";
+            headerEl.style.color = "#a5b4fc";
+        } else {
+            headerEl.textContent = `ROOF ${roofPhys.toUpperCase()}`;
+            headerEl.style.color = "#a5b4fc";
+        }
+    }
+    
     const nightForecast = proc.night_forecast || [];
     const forecastTimeline = document.getElementById('forecast-timeline');
     
