@@ -132,9 +132,9 @@ function updateWeatherUI() {
         forecastTimeline.innerHTML = '';
         const tz = (currentData.raw && currentData.raw.timezone) || 'America/Chicago';
         
-        // Chunk forecast size based on screen width
-        const width = window.innerWidth;
-        const chunkSize = width < 600 ? 5 : (width < 900 ? 8 : 12);
+        // Perfectly split the forecast into 2 halves so they stack vertically 
+        // without ANY horizontal scrolling and completely fill the container.
+        const chunkSize = Math.ceil(nightForecast.length / 2);
         
         for (let i = 0; i < nightForecast.length; i += chunkSize) {
             const chunk = nightForecast.slice(i, i + chunkSize);
@@ -166,6 +166,8 @@ function updateWeatherUI() {
             `;
             forecastTimeline.appendChild(table);
         }
+        
+        setTimeout(() => fitText('forecast-timeline', 1.4), 50);
     } else {
         forecastTimeline.innerHTML = '<div style="color: #ccc; font-size: 1rem; padding: 1rem;">Night forecast currently unavailable.</div>';
     }
@@ -180,8 +182,8 @@ function fitText(elementId, maxFontSize) {
     let fontSize = maxFontSize;
     el.style.fontSize = fontSize + 'rem';
     
-    // Shrink while content overflows container
-    while (el.scrollHeight > el.clientHeight && fontSize > 0.6) {
+    // Shrink while content overflows container vertically or horizontally
+    while ((el.scrollHeight > el.clientHeight || el.scrollWidth > el.clientWidth) && fontSize > 0.6) {
         fontSize -= 0.1;
         el.style.fontSize = fontSize + 'rem';
     }
