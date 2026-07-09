@@ -130,11 +130,19 @@ def get_latest_image(scope):
         
     p = pathlib.Path(img_dir)
     fits_files = list(p.rglob("*.fit*"))
-    fits_files = [str(f) for f in fits_files if f.is_file()]
+    
+    # Filter out directories and Syncthing temporary files
+    fits_files = [
+        str(f) for f in fits_files 
+        if f.is_file() and not f.name.startswith('.syncthing') and not f.name.endswith('.tmp')
+    ]
     
     # For local test prototype (if testing outside Docker)
     if not fits_files and img_dir == ".":
-        fits_files = [str(f) for f in p.rglob(f"*{scope_dir_map[safe_scope]}*.fit*") if f.is_file()]
+        fits_files = [
+            str(f) for f in p.rglob(f"*{scope_dir_map[safe_scope]}*.fit*") 
+            if f.is_file() and not f.name.startswith('.syncthing') and not f.name.endswith('.tmp')
+        ]
 
     if not fits_files:
         # Fallback to local jpeg if it exists (from our quick conversion test)
