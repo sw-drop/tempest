@@ -197,11 +197,22 @@ async function fetchReports() {
             const captureText = data.capture || "";
             const forecastText = data.forecast || "";
             
+            const cleanTargetList = (text) => {
+                return text
+                    .replace(/[*•]/g, "")
+                    .replace(/Target:/gi, "")
+                    .replace(/Target/gi, "")
+                    .split('\n')
+                    .map(line => line.trim())
+                    .filter(line => line.length > 0)
+                    .join('\n');
+            };
+            
             let fraPart = captureText.split("FRA400:")[1] || "";
-            if (fraPart) fraPart = fraPart.split("75Q:")[0].replace(/[*•]/g, "").replace(/Target:/g, "").trim();
+            if (fraPart) fraPart = cleanTargetList(fraPart.split("75Q:")[0]);
             
             let q75Part = captureText.split("75Q:")[1] || "";
-            if (q75Part) q75Part = q75Part.split("🏠")[0].replace(/[*•]/g, "").replace(/Target:/g, "").trim();
+            if (q75Part) q75Part = cleanTargetList(q75Part.split("🏠")[0]);
             
             let roofPart = captureText.split("🏠")[1] || "";
             if (roofPart) {
