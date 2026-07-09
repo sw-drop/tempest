@@ -198,10 +198,10 @@ async function fetchReports() {
             const forecastText = data.forecast || "";
             
             let fraPart = captureText.split("FRA400:")[1] || "";
-            if (fraPart) fraPart = fraPart.split("* 75Q:")[0].trim();
+            if (fraPart) fraPart = fraPart.split("75Q:")[0].replace(/[*•]/g, "").trim();
             
             let q75Part = captureText.split("75Q:")[1] || "";
-            if (q75Part) q75Part = q75Part.split("🏠")[0].trim();
+            if (q75Part) q75Part = q75Part.split("🏠")[0].replace(/[*•]/g, "").trim();
             
             let roofPart = captureText.split("🏠")[1] || "";
             if (roofPart) {
