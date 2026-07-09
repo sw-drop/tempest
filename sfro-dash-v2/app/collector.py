@@ -112,10 +112,10 @@ class TempestCollector:
                         )
                         with urllib.request.urlopen(req_roof, timeout=10) as resp:
                             roof_state_raw = json.loads(resp.read().decode('utf-8'))
-                            # Find Building 5
-                            building_5 = next((b for b in roof_state_raw if b.get("device_number") == 5), None)
-                            if building_5:
-                                is_open = building_5.get("is_open")
+                            # Find Building 9
+                            building_9 = next((b for b in roof_state_raw if str(b.get("device_number")).lstrip('0') == '9'), None)
+                            if building_9:
+                                is_open = building_9.get("is_open")
                                 if is_open is True:
                                     physical_roof_status = "Open"
                                 elif is_open is False:
