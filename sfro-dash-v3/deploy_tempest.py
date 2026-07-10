@@ -57,6 +57,10 @@ def main():
     run_remote(ssh_host, "docker rm -f sfro-dash-v3 || true", check=False)
     run_remote(ssh_host, f"cd {remote_dir} && docker compose down || true", check=False)
 
+    # 4b. Ensure the host data directory has the correct user ownership (UID 1000)
+    print("\nStep 4b: Aligning host data directory ownership to UID 1000...")
+    run_remote(ssh_host, f"sudo chown -R 1000:1000 {remote_dir}/data || true", check=False)
+
     # 5. Build and start services using docker compose up
     print(f"\nStep 5: Building and launching sfro-dash-v3 on port {host_port}...")
     run_remote(ssh_host, f"cd {remote_dir} && docker compose up --build -d")
