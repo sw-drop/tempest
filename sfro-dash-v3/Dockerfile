@@ -12,6 +12,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 WORKDIR /app
 RUN mkdir -p /var/log/supervisor /var/run/supervisor /var/www/html
 
+# Create user 'pi' with UID 1000 for non-root daemon execution
+RUN useradd -u 1000 -m -s /bin/bash pi
+
 # Copy Python requirements and install
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
