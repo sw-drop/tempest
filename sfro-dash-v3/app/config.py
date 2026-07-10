@@ -11,5 +11,5 @@ class Config:
     MQTT_USERNAME = os.environ.get("MQTT_USERNAME", "").strip()
     MQTT_PASSWORD = os.environ.get("MQTT_PASSWORD", "").strip()
     
-    # We output all static files to the Nginx document root
-    STATIC_DIR = "/var/www/html"
+    # We output all static files to the Nginx document root data subdirectory
+    STATIC_DIR = "/var/www/html/data"

@@ -50,6 +50,9 @@ def main():
     logger.info("Initializing Starfront Dashboard v3 Asynchronous Daemon...")
     config = Config()
     
+    # Ensure static data output directory exists
+    os.makedirs(config.STATIC_DIR, exist_ok=True)
+    
     # 1. Start MQTT Publisher
     mqtt_publisher = TempestMqttPublisher(config)
     mqtt_publisher.connect()

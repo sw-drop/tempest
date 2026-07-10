@@ -9,6 +9,7 @@ services:
     ports:
       - "8023:80"
     volumes:
+      - ./data:/var/www/html/data
       - /syncdata/75Q-Data:/app/images/75Q:ro
       - /syncdata/FRA400-Data:/app/images/FRA400:ro
     env_file:

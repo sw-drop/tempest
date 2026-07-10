@@ -25,7 +25,7 @@ updateClocks();
 // Weather & Roof Data (from observations.json)
 async function fetchWeather() {
     try {
-        const response = await fetch('/observations.json?t=' + Date.now());
+        const response = await fetch('/data/observations.json?t=' + Date.now());
         if (!response.ok) throw new Error("HTTP error");
         currentData = await response.json();
         
@@ -188,7 +188,7 @@ function fitText(elementId, maxFontSize) {
 // Reports & Captures (from reports.json)
 async function fetchReports() {
     try {
-        const response = await fetch('/reports.json?t=' + Date.now());
+        const response = await fetch('/data/reports.json?t=' + Date.now());
         if (response.ok) {
             const data = await response.json();
             
@@ -238,7 +238,7 @@ async function fetchReports() {
 // FITS Images (from images.json and local JPEGs)
 async function fetchFITSImages() {
     try {
-        const response = await fetch('/images.json?t=' + Date.now());
+        const response = await fetch('/data/images.json?t=' + Date.now());
         if (response.ok) {
             const metadata = await response.json();
             
@@ -250,7 +250,7 @@ async function fetchFITSImages() {
                 const titleEl = document.getElementById(`${scope}-title`);
                 
                 if (imgEl) {
-                    imgEl.src = `/${scope}.jpg?t=${Date.now()}`;
+                    imgEl.src = `/data/${scope}.jpg?t=${Date.now()}`;
                 }
                 if (targetEl) {
                     targetEl.textContent = data.target || scope.toUpperCase();
