@@ -1,0 +1,7 @@
+Flask>=3.0.0
+paho-mqtt>=1.6.1
+werkzeug>=3.0.0
+astropy>=6.0.0
+pillow>=10.0.0
+numpy>=1.26.0
+python-dotenv>=1.0.0

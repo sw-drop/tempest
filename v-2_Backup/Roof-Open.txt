@@ -1,0 +1,109 @@
+
+**SFRO**
+If the observatory roof is open
+1. 1 - Sky cam view from SFRO 
+2.  6 & 7 -Overnight image capture volumes from Telegram feed - update every 5 mins
+3. 8 - yr.no Weather forecast until 1hr after dawn
+4. 10 & 12 - Individual scope last image captured
+5. 13 SFRO Roof forecast from Telegram feed
+6. 14 Get flats indicator (if clouds < 3%) and countdown to sun angle
+7. 15 Backup report (as run at 07:00 UTC already)
+8. 16 - Observatory time
+9. 17 - Local time
+
+
+Operations
+13. Backup report (as run at 07:00 UTC already)
+14. System(s) statuses
+
+
+
+https://cssgridgenerator.io/
+HTML
+
+
+<div class="parent">
+    <div class="div1">1</div>
+    <div class="div6">6</div>
+    <div class="div7">7</div>
+    <div class="div8">8</div>
+    <div class="div10">10</div>
+    <div class="div12">12</div>
+    <div class="div13">13</div>
+    <div class="div14">14</div>
+    <div class="div15">15</div>
+    <div class="div16">16</div>
+    <div class="div17">17</div>
+</div>
+    
+    
+CSS
+
+.parent {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    grid-template-rows: repeat(7, 1fr);
+    gap: 8px;
+}
+    
+.div1 {
+    grid-column: span 2 / span 2;
+    grid-row: span 5 / span 5;
+}
+
+.div6 {
+    grid-row: span 2 / span 2;
+    grid-column-start: 1;
+    grid-row-start: 6;
+}
+
+.div7 {
+    grid-row: span 2 / span 2;
+    grid-column-start: 2;
+    grid-row-start: 6;
+}
+
+.div8 {
+    grid-column: span 2 / span 2;
+    grid-column-start: 3;
+    grid-row-start: 1;
+}
+
+.div10 {
+    grid-row: span 3 / span 3;
+    grid-column-start: 3;
+    grid-row-start: 5;
+}
+
+.div12 {
+    grid-row: span 3 / span 3;
+    grid-column-start: 3;
+    grid-row-start: 2;
+}
+
+.div13 {
+    grid-row: span 2 / span 2;
+    grid-column-start: 4;
+    grid-row-start: 2;
+}
+
+.div14 {
+    grid-column-start: 4;
+    grid-row-start: 4;
+}
+
+.div15 {
+    grid-column-start: 4;
+    grid-row-start: 5;
+}
+
+.div16 {
+    grid-column-start: 4;
+    grid-row-start: 6;
+}
+
+.div17 {
+    grid-column-start: 4;
+    grid-row-start: 7;
+}
+  

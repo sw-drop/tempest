@@ -1,0 +1,25 @@
+services:
+  sfro-dash-v3:
+    container_name: sfro-dash-v3
+    image: sfro-dash-v3
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    ports:
+      - "8023:80"
+    volumes:
+      - /syncdata/75Q-Data:/app/images/75Q:ro
+      - /syncdata/FRA400-Data:/app/images/FRA400:ro
+    env_file:
+      - .env
+    environment:
+      - TEMPEST_STATION_ID=174867
+      - DASHBOARD_HOST=http://192.168.1.51:5002
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    labels:
+      - io.portainer.accesscontrol.users=agent
