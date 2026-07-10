@@ -149,15 +149,9 @@ class TempestCollector:
                 current_cloud = timeseries[0].get("data", {}).get("instant", {}).get("details", {}).get("cloud_area_fraction")
                 
                 if sunrise > 0 and sunset > 0:
-                    if current_time < (sunrise + 3600):
-                        filter_start = current_time
-                        filter_end = sunrise + 3600
-                    elif current_time < (sunset - 3600):
-                        filter_start = sunset - 3600
-                        filter_end = sunrise_tomorrow + 3600
-                    else:
-                        filter_start = sunset - 3600
-                        filter_end = sunrise_tomorrow + 3600
+                    # Show forecast for the active/upcoming night (from 1 hour before sunset until 1 hour after tomorrow's sunrise)
+                    filter_start = sunset - 3600
+                    filter_end = sunrise_tomorrow + 3600
                 else:
                     filter_start = current_time
                     filter_end = current_time + 43200
