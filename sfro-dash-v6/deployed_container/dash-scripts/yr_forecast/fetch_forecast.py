@@ -8,20 +8,8 @@ from datetime import datetime, timedelta, timezone
 from zoneinfo import ZoneInfo
 import time
 
-def main():
-    parser = argparse.ArgumentParser(description="Fetch hourly weather forecast from yr.no (MET Norway) for Wandsworth and compile it for V5 Dashboard.")
-    parser.add_argument("--lat", default=51.45695971753735, type=float, help="Latitude")
-    parser.add_argument("--lon", default=-0.18686539472508437, type=float, help="Longitude")
-    parser.add_argument("-t", "--title", default="Observatory Forecast", help="Card Title")
-    parser.add_argument("-s", "--subtitle", default="London/Wandsworth", help="Card Subtitle")
-    parser.add_argument("-z", "--timezone", default="Europe/London", help="Timezone of the station location")
-    parser.add_argument("-n", "--hours", type=int, default=8, help="Number of hours to forecast")
-    parser.add_argument("--sunset", help="Sunset time for event insertion (e.g. 17:15)")
-    parser.add_argument("--sunrise", help="Sunrise time for event insertion (e.g. 05:30)")
-    parser.add_argument("-o", "--out", default="v5-test/data/forecast.json", help="Output JSON path")
-    args = parser.parse_args()
-
-    url = f"https://api.met.no/weatherapi/locationforecast/2.0/compact?lat={args.lat:.4f}&lon={args.lon:.4f}"
+def fetch_forecast(lat=51.45695971753735, lon=-0.18686539472508437, title="Observatory Forecast", subtitle="London/Wandsworth", timezone_str="Europe/London", hours=8, sunset=None, sunrise=None, out="v5-test/data/forecast.json"):
+    url = f"https://api.met.no/weatherapi/locationforecast/2.0/compact?lat={lat:.4f}&lon={lon:.4f}"
     
     try:
         req = urllib.request.Request(url, headers={"User-Agent": "Tempest-V5-Fetcher/1.0 gary@pillay.net"})
@@ -39,9 +27,9 @@ def main():
 
     # Establish target timezone
     try:
-        tz = ZoneInfo(args.timezone)
+        tz = ZoneInfo(timezone_str)
     except Exception as e:
-        print(f"Warning: Timezone '{args.timezone}' not recognized. Falling back to local system timezone. Error: {e}", file=sys.stderr)
+        print(f"Warning: Timezone '{timezone_str}' not recognized. Falling back to local system timezone. Error: {e}", file=sys.stderr)
         tz = datetime.now().astimezone().tzinfo
 
     # Determine dynamic starting time in the target timezone
@@ -66,12 +54,12 @@ def main():
     ]
     
     for date_str in local_dates:
-        sunset_time = args.sunset
-        sunrise_time = args.sunrise
+        sunset_time = sunset
+        sunrise_time = sunrise
         
         if not sunset_time or not sunrise_time:
             try:
-                api_url = f"https://api.sunrise-sunset.org/json?lat={args.lat:.4f}&lng={args.lon:.4f}&date={date_str}&formatted=0"
+                api_url = f"https://api.sunrise-sunset.org/json?lat={lat:.4f}&lng={lon:.4f}&date={date_str}&formatted=0"
                 req_ss = urllib.request.Request(api_url, headers={"User-Agent": "Tempest-V5-Fetcher/1.0 gary@pillay.net"})
                 with urllib.request.urlopen(req_ss, timeout=5) as resp_ss:
                     ss_data = json.loads(resp_ss.read().decode('utf-8'))
@@ -135,8 +123,8 @@ def main():
     prev_ts = None
     
     # We loop through a slightly larger window in case events are inserted,
-    # then slice the final timeline array to exactly args.hours.
-    for entry in future_timeseries[:args.hours + len(events)]:
+    # then slice the final timeline array to exactly hours.
+    for entry in future_timeseries[:hours + len(events)]:
         time_str = entry.get("time")
         try:
             dt_utc = datetime.strptime(time_str, "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=timezone.utc)
@@ -185,13 +173,13 @@ def main():
         
         prev_ts = ts
 
-    # Slices to exactly args.hours to replace standard hourly columns with events
-    timeline = timeline[:args.hours]
+    # Slices to exactly hours to replace standard hourly columns with events
+    timeline = timeline[:hours]
 
     # Wrap in universal card response
     card_data = {
-        "title": args.title,
-        "subtitle": args.subtitle,
+        "title": title,
+        "subtitle": subtitle,
         "type": "forecast",
         "data": {
             "timeline": timeline
@@ -199,19 +187,34 @@ def main():
     }
 
     # Write output atomically
-    out_dir = os.path.dirname(args.out)
+    out_dir = os.path.dirname(out)
     if out_dir:
         os.makedirs(out_dir, exist_ok=True)
 
-    temp_out = f"{args.out}.tmp"
+    temp_out = f"{out}.tmp"
     try:
         with open(temp_out, "w") as f:
             json.dump(card_data, f, indent=2)
-        os.replace(temp_out, args.out)
-        print(f"Successfully updated forecast at {args.out} for {args.subtitle}")
+        os.replace(temp_out, out)
+        print(f"Successfully updated forecast at {out} for {subtitle}")
     except Exception as e:
         print(f"Error writing output file: {e}", file=sys.stderr)
         sys.exit(1)
+
+def main():
+    import argparse
+    parser = argparse.ArgumentParser(description="Fetch hourly weather forecast from yr.no (MET Norway) for Wandsworth and compile it for V5 Dashboard.")
+    parser.add_argument("--lat", default=51.45695971753735, type=float, help="Latitude")
+    parser.add_argument("--lon", default=-0.18686539472508437, type=float, help="Longitude")
+    parser.add_argument("-t", "--title", default="Observatory Forecast", help="Card Title")
+    parser.add_argument("-s", "--subtitle", default="London/Wandsworth", help="Card Subtitle")
+    parser.add_argument("-z", "--timezone", default="Europe/London", help="Timezone of the station location")
+    parser.add_argument("-n", "--hours", type=int, default=8, help="Number of hours to forecast")
+    parser.add_argument("--sunset", help="Sunset time for event insertion (e.g. 17:15)")
+    parser.add_argument("--sunrise", help="Sunrise time for event insertion (e.g. 05:30)")
+    parser.add_argument("-o", "--out", default="v5-test/data/forecast.json", help="Output JSON path")
+    args = parser.parse_args()
+    fetch_forecast(lat=args.lat, lon=args.lon, title=args.title, subtitle=args.subtitle, timezone_str=args.timezone, hours=args.hours, sunset=args.sunset, sunrise=args.sunrise, out=args.out)
 
 if __name__ == "__main__":
     main()

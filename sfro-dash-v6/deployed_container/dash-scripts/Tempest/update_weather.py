@@ -258,6 +258,28 @@ def write_json_card(title, subtitle, items, out_path):
     except Exception as e:
         print(f"Error writing to {out_path}: {e}", file=sys.stderr)
 
+def fetch_weather(api_key, out_dir, config_path):
+    if not os.path.exists(config_path):
+        print(f"Error: Config file not found at {config_path}", file=sys.stderr)
+        return
+
+    with open(config_path, "r") as f:
+        config_data = json.load(f)
+
+    # Determine project root based on the script location
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    project_root = os.path.dirname(script_dir) # parent of Tempest/
+
+    locations = config_data.get("locations", [])
+    for loc in locations:
+        source = loc.get("source")
+        if source == "tempest":
+            process_tempest(loc, api_key, project_root, out_dir)
+        elif source == "coordinates":
+            process_coordinates(loc, project_root, out_dir)
+        else:
+            print(f"Warning: Unknown source '{source}' for location '{loc.get('title')}'")
+
 def main():
     parser = argparse.ArgumentParser(description="Master weather updater for SFRO Dashboard V5.")
     parser.add_argument("-c", "--config", help="Path to locations config JSON")
@@ -265,30 +287,10 @@ def main():
     parser.add_argument("-o", "--out-dir", help="Output directory override for compiled JSONs")
     args = parser.parse_args()
 
-    # Determine paths relative to script
     script_dir = os.path.dirname(os.path.abspath(__file__))
-    project_root = os.path.dirname(script_dir) # parent of Tempest/
+    config_path = args.config if args.config else os.path.join(script_dir, "locations.json")
 
-    config_path = args.config
-    if not config_path:
-        config_path = os.path.join(script_dir, "locations.json")
-
-    if not os.path.exists(config_path):
-        print(f"Error: Config file not found at {config_path}", file=sys.stderr)
-        sys.exit(1)
-
-    with open(config_path, "r") as f:
-        config_data = json.load(f)
-
-    locations = config_data.get("locations", [])
-    for loc in locations:
-        source = loc.get("source")
-        if source == "tempest":
-            process_tempest(loc, args.api_key, project_root, args.out_dir)
-        elif source == "coordinates":
-            process_coordinates(loc, project_root, args.out_dir)
-        else:
-            print(f"Warning: Unknown source '{source}' for location '{loc.get('title')}'")
+    fetch_weather(args.api_key, args.out_dir, config_path)
 
 if __name__ == "__main__":
     main()

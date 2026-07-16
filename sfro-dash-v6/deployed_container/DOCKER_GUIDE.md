@@ -8,11 +8,11 @@ This guide details how to build and run the SFRO Dashboard V5 using Docker, matc
 
 We use a two-container Docker Compose setup:
 1.  **`web` (`sfro-dash-v5-web`)**: An ultra-lightweight Nginx container that hosts the static frontend (`index.html`, `index.js`) and serves the compiled JSON and JPEG files from the `./data` folder.
-2.  **`scheduler` (`sfro-dash-v5-scheduler`)**: A Python 3.11 container running our master daemon loop (**`dash-scripts/runner.py`**). It orchestrates:
+2.  **`scheduler` (`sfro-dash-v5-scheduler`)**: A Python 3.11 container running our master daemon loop (**`dash-scripts/daemon.py`**). It orchestrates:
     *   FITS watchdog (`image_watcher.py`) every 15 seconds.
     *   Active card controller (`controller.py`) every 15 seconds.
-    *   Tempest weather observer (`update_weather.py`) every 60 seconds.
-    *   Roof status scraper (`fetch_roof.py`) every 60 seconds.
+    *   Tempest weather observer (`update_weather.py`) every 1 minute.
+    *   Roof status scraper (`fetch_roof.py`) every 1 minute.
     *   Schema engine state evaluation (`schema_engine.py`) every 15 minutes.
     *   Weather forecast compiler (`fetch_forecast.py`) every 2 hours.
     *   APOD astronomy picture fetcher (`fetch_apod.py`) every 12 hours.

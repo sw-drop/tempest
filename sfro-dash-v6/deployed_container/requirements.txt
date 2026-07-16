@@ -5,3 +5,4 @@ astropy==6.0.0
 numpy==1.26.4
 schedule==1.2.1
 Pillow>=10.2.0
+schedule

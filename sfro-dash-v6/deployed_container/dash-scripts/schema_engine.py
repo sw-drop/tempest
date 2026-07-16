@@ -7,18 +7,14 @@ from datetime import datetime, timedelta, timezone
 
 LAT = float(os.getenv("LAT", "31.546944"))
 LON = float(os.getenv("LON", "-99.382222"))
-DATA_DIR = os.environ.get("DATA_DIR", "/app/data")
-OVERRIDE_PATH = os.path.join(DATA_DIR, "override.json")
-ROOF_PATH = os.path.join(DATA_DIR, "roof.json")
-OUT_PATH = os.path.join(DATA_DIR, "active_schema.json")
 
-def get_forecast_roof_prospect():
+def get_forecast_roof_prospect(lat=LAT, lon=LON):
     """
     Fetches the yr.no forecast for Starfront and checks if there are >= 2 consecutive hours
     of < 20% clouds during the upcoming/current night (18:00 to 06:00 UTC).
     Returns True if clear window found, False otherwise.
     """
-    url = f"https://api.met.no/weatherapi/locationforecast/2.0/compact?lat={LAT:.4f}&lon={LON:.4f}"
+    url = f"https://api.met.no/weatherapi/locationforecast/2.0/compact?lat={lat:.4f}&lon={lon:.4f}"
     try:
         req = urllib.request.Request(url, headers={"User-Agent": "Tempest-V5-SchemaEngine/1.0 gary@pillay.net"})
         with urllib.request.urlopen(req, timeout=10) as resp:
@@ -66,20 +62,23 @@ def get_forecast_roof_prospect():
             
     return False
 
-def get_actual_roof_state():
+def get_actual_roof_state(roof_path):
     """Reads roof.json to determine if roof is currently OPEN."""
     try:
-        with open(ROOF_PATH, 'r') as f:
+        with open(roof_path, 'r') as f:
             r = json.load(f)
             return r.get("data", {}).get("status", "").upper() == "OPEN"
     except:
         return False
 
-def evaluate_schema():
+def evaluate_schema(data_dir="/app/data", lat=LAT, lon=LON):
+    override_path = os.path.join(data_dir, "override.json")
+    roof_path = os.path.join(data_dir, "roof.json")
+    
     # 1. Check override
     try:
-        if os.path.exists(OVERRIDE_PATH):
-            with open(OVERRIDE_PATH, 'r') as f:
+        if os.path.exists(override_path):
+            with open(override_path, 'r') as f:
                 o = json.load(f)
                 if "override" in o and o["override"]:
                     return o["override"]
@@ -91,8 +90,8 @@ def evaluate_schema():
     hour = now_utc.hour
     
     # We evaluate weather and roof states
-    roof_is_open = get_actual_roof_state()
-    forecast_open = get_forecast_roof_prospect()
+    roof_is_open = get_actual_roof_state(roof_path)
+    forecast_open = get_forecast_roof_prospect(lat=lat, lon=lon)
     
     # Rule alias
     prospect_open = roof_is_open or forecast_open
@@ -143,17 +142,20 @@ def evaluate_schema():
     return "RoofClosedEvening1" # Fallback
 
 def main():
-    schema = evaluate_schema()
+    data_dir = os.environ.get("DATA_DIR", "/app/data")
+    out_path = os.path.join(data_dir, "active_schema.json")
     
-    out_dir = os.path.dirname(OUT_PATH)
+    schema = evaluate_schema(data_dir=data_dir)
+    
+    out_dir = os.path.dirname(out_path)
     if out_dir:
         os.makedirs(out_dir, exist_ok=True)
         
-    temp_out = f"{OUT_PATH}.tmp"
+    temp_out = f"{out_path}.tmp"
     try:
         with open(temp_out, "w") as f:
             json.dump({"schema": schema, "updated_at": datetime.now(timezone.utc).isoformat()}, f, indent=2)
-        os.replace(temp_out, OUT_PATH)
+        os.replace(temp_out, out_path)
         print(f"Schema Engine Active: Set to {schema}")
     except Exception as e:
         print(f"Error writing schema file: {e}", file=sys.stderr)

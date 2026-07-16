@@ -88,27 +88,19 @@ def get_scheduled_targets(data):
     lines = [f"• {e['label']}" for e in events]
     return "\n".join(lines)
 
-def main():
-    parser = argparse.ArgumentParser(description="Fetch planned NINA target schedules for the scopes and generate text card JSONs.")
-    parser.add_argument("-o", "--out-dir", default="v5-test/data", help="Output directory for JSON files")
-    parser.add_argument("--host", default="http://192.168.1.51:5002", help="Remote dashboard host log API")
-    parser.add_argument("--local-dir", help="Optional local directory to read log files from directly (instead of API)")
-    parser.add_argument("--title-fra", default="FRA400 Forecast", help="Card Title for FRA400")
-    parser.add_argument("--title-q75", default="75Q Forecast", help="Card Title for 75Q")
-    args = parser.parse_args()
-    
-    os.makedirs(args.out_dir, exist_ok=True)
+def fetch_forecasts(out_dir="v5-test/data", host="http://192.168.1.51:5002", local_dir=None, title_fra="FRA400 Forecast", title_q75="75Q Forecast"):
+    os.makedirs(out_dir, exist_ok=True)
     
     scopes_config = {
         "fra400": {
             "log_file": "FRA400_log.json",
             "out_file": "nina_fra400.json",
-            "title": args.title_fra
+            "title": title_fra
         },
         "75q": {
             "log_file": "75Q_log.json",
             "out_file": "nina_75q.json",
-            "title": args.title_q75
+            "title": title_q75
         }
     }
     
@@ -116,12 +108,12 @@ def main():
         data = None
         
         # Load from local dir if provided, otherwise query remote API
-        if args.local_dir:
-            local_path = os.path.join(args.local_dir, config["log_file"])
+        if local_dir:
+            local_path = os.path.join(local_dir, config["log_file"])
             print(f"Reading local logs for {scope_key.upper()} from {local_path}...")
             data = load_local_json(local_path)
         else:
-            api_url = f"{args.host}/data/{config['log_file']}"
+            api_url = f"{host}/data/{config['log_file']}"
             print(f"Fetching remote logs for {scope_key.upper()} from {api_url}...")
             data = fetch_json(api_url)
             
@@ -144,7 +136,7 @@ def main():
             }
         }
         
-        out_path = os.path.join(args.out_dir, config["out_file"])
+        out_path = os.path.join(out_dir, config["out_file"])
         temp_path = f"{out_path}.tmp"
         try:
             with open(temp_path, "w", encoding="utf-8") as f:
@@ -153,6 +145,16 @@ def main():
             print(f"  [✓] Successfully updated {out_path}")
         except Exception as e:
             print(f"  [!] Failed to write {out_path}: {e}", file=sys.stderr)
+
+def main():
+    parser = argparse.ArgumentParser(description="Fetch planned NINA target schedules for the scopes and generate text card JSONs.")
+    parser.add_argument("-o", "--out-dir", default="v5-test/data", help="Output directory for JSON files")
+    parser.add_argument("--host", default="http://192.168.1.51:5002", help="Remote dashboard host log API")
+    parser.add_argument("--local-dir", help="Optional local directory to read log files from directly (instead of API)")
+    parser.add_argument("--title-fra", default="FRA400 Forecast", help="Card Title for FRA400")
+    parser.add_argument("--title-q75", default="75Q Forecast", help="Card Title for 75Q")
+    args = parser.parse_args()
+    fetch_forecasts(args.out_dir, args.host, args.local_dir, args.title_fra, args.title_q75)
 
 if __name__ == "__main__":
     main()

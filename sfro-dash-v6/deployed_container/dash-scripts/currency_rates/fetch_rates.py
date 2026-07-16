@@ -15,21 +15,12 @@ def fetch_json(url):
         print(f"Error fetching API {url}: {e}", file=sys.stderr)
         return None
 
-def main():
-    parser = argparse.ArgumentParser(description="Fetch historical and current exchange rates and generate text card JSONs.")
-    parser.add_argument("-o", "--out-dir", default="v5-test/data", help="Output directory for JSON files")
-    parser.add_argument("--base", default="GBP", help="Base currency (e.g. GBP, USD, EUR)")
-    parser.add_argument("--left", default="ZAR", help="Target currency for the left card (fra400cap)")
-    parser.add_argument("--right", default="USD", help="Target currency for the right card (q75cap)")
-    parser.add_argument("--title-left", help="Custom card title for the left card (defaults to '{BASE} to {LEFT}')")
-    parser.add_argument("--title-right", help="Custom card title for the right card (defaults to '{BASE} to {RIGHT}')")
-    args = parser.parse_args()
+def fetch_rates(out_dir="v5-test/data", base="GBP", left="ZAR", right="USD", title_left=None, title_right=None):
+    os.makedirs(out_dir, exist_ok=True)
     
-    os.makedirs(args.out_dir, exist_ok=True)
-    
-    base_curr = args.base.upper()
-    left_curr = args.left.upper()
-    right_curr = args.right.upper()
+    base_curr = base.upper()
+    left_curr = left.upper()
+    right_curr = right.upper()
     
     # Calculate dates for 6-month historical window
     today_str = datetime.now().strftime("%Y-%m-%d")
@@ -72,8 +63,8 @@ def main():
     low_right = min(right_rates)
     
     # Titles configuration
-    title_left = args.title_left if args.title_left else f"{base_curr} to {left_curr}"
-    title_right = args.title_right if args.title_right else f"{base_curr} to {right_curr}"
+    t_left = title_left if title_left else f"{base_curr} to {left_curr}"
+    t_right = title_right if title_right else f"{base_curr} to {right_curr}"
     
     # Format Left Output (fra400cap.json)
     left_text = (
@@ -83,7 +74,7 @@ def main():
         f"<div>6M Low: {low_left:.2f} {left_curr}</div></div>"
     )
     left_card = {
-        "title": title_left,
+        "title": t_left,
         "subtitle": f"As of {latest_date}",
         "type": "text",
         "data": {
@@ -99,7 +90,7 @@ def main():
         f"<div>6M Low: {low_right:.2f} {right_curr}</div></div>"
     )
     right_card = {
-        "title": title_right,
+        "title": t_right,
         "subtitle": f"As of {latest_date}",
         "type": "text",
         "data": {
@@ -108,7 +99,7 @@ def main():
     }
     
     # Write Left card payload
-    left_path = os.path.join(args.out_dir, "rates_left.json")
+    left_path = os.path.join(out_dir, "rates_left.json")
     temp_left_path = f"{left_path}.tmp"
     try:
         with open(temp_left_path, "w", encoding="utf-8") as f:
@@ -119,7 +110,7 @@ def main():
         print(f"  [!] Failed to write {left_path}: {e}", file=sys.stderr)
         
     # Write Right card payload
-    right_path = os.path.join(args.out_dir, "rates_right.json")
+    right_path = os.path.join(out_dir, "rates_right.json")
     temp_right_path = f"{right_path}.tmp"
     try:
         with open(temp_right_path, "w", encoding="utf-8") as f:
@@ -128,6 +119,17 @@ def main():
         print(f"  [✓] Successfully updated {right_curr} rate in {right_path}")
     except Exception as e:
         print(f"  [!] Failed to write {right_path}: {e}", file=sys.stderr)
+
+def main():
+    parser = argparse.ArgumentParser(description="Fetch historical and current exchange rates and generate text card JSONs.")
+    parser.add_argument("-o", "--out-dir", default="v5-test/data", help="Output directory for JSON files")
+    parser.add_argument("--base", default="GBP", help="Base currency (e.g. GBP, USD, EUR)")
+    parser.add_argument("--left", default="ZAR", help="Target currency for the left card (fra400cap)")
+    parser.add_argument("--right", default="USD", help="Target currency for the right card (q75cap)")
+    parser.add_argument("--title-left", help="Custom card title for the left card (defaults to '{BASE} to {LEFT}')")
+    parser.add_argument("--title-right", help="Custom card title for the right card (defaults to '{BASE} to {RIGHT}')")
+    args = parser.parse_args()
+    fetch_rates(args.out_dir, args.base, args.left, args.right, args.title_left, args.title_right)
 
 if __name__ == "__main__":
     main()

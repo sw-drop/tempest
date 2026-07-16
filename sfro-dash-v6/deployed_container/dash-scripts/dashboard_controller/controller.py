@@ -70,12 +70,7 @@ def run_subscript(script_rel_path, out_dir, extra_args=[]):
         cmd = [sys.executable, target, "-o", out_dir] + extra_args
         subprocess.run(cmd, check=False)
 
-def main():
-    parser = argparse.ArgumentParser(description="Master controller to route dashboard cards based on schema.")
-    parser.add_argument("-o", "--out-dir", default="v5-test/data", help="Output directory for JSON files")
-    args = parser.parse_args()
-    
-    out_dir = args.out_dir
+def update_dashboard(out_dir):
     os.makedirs(out_dir, exist_ok=True)
     
     reports_dir = os.path.join(out_dir, "reports")
@@ -110,19 +105,8 @@ def main():
     # Default fallback if schema is unknown
     active_state = state_matrix.get(schema, {"fra400": "live", "75q": "live", "weather": "starfront", "captures": "nina"})
     
-    # Run data scrapers
-    run_subscript("scope_forecast/fetch_forecasts.py", out_dir)
-    run_subscript("scope_captures/fetch_captures.py", out_dir)
-    run_subscript("currency_rates/fetch_rates.py", out_dir)
-    run_subscript("Tempest/update_weather.py", out_dir)
-    
-    if active_state["weather"] == "wandsworth":
-        run_subscript("yr_forecast/fetch_forecast.py", os.path.join(out_dir, "forecast.json"), ["--subtitle", "London/Wandsworth"])
-    else:
-        run_subscript("yr_forecast/fetch_forecast.py", os.path.join(out_dir, "forecast.json"), [
-            "--subtitle", "Starfront Observatory",
-            "--lat", "31.546944", "--lon", "-99.382222", "--timezone", "America/Chicago"
-        ])
+    # We no longer run data scrapers here (run_subscript removed).
+    # They are executed on their own dedicated schedules by daemon.py.
         
     # ---------------------------------------------------------
     # Execute Actions Based on Active State
@@ -245,6 +229,12 @@ def main():
     else:
         nina_75q = load_json(os.path.join(out_dir, "nina_75q.json"))
         if nina_75q: save_json(os.path.join(out_dir, "q75cap.json"), nina_75q)
+
+def main():
+    parser = argparse.ArgumentParser(description="Master controller to route dashboard cards based on schema.")
+    parser.add_argument("-o", "--out-dir", default="v5-test/data", help="Output directory for JSON files")
+    args = parser.parse_args()
+    update_dashboard(args.out_dir)
 
 if __name__ == "__main__":
     main()
