@@ -5,12 +5,13 @@ REMOTE_USER="gary"
 REMOTE_HOST="Pi5-1"
 # We're updating the scripts for sfro-dash-v5 since it's the live directory
 # (or v6 if it gets updated later). The user said: "The deployment of the dashboard is currently at /docker/sfro-dash-v5. As part of this project, we may change that to /docker/sfro-dash-v6"
-REMOTE_PATH="/docker/sfro-dash-v5/dash-scripts/"
-LOCAL_PATH="./deployed_container/dash-scripts/"
+REMOTE_PATH="/docker/sfro-dash-v5/"
+LOCAL_PATH="./deployed_container/"
 
-echo "Pushing Python script updates to ${REMOTE_HOST}:${REMOTE_PATH}..."
+echo "Pushing full V6 update to ${REMOTE_HOST}:${REMOTE_PATH}..."
 
-# We use rsync to sync only the python files and omit caches
-rsync -avz --exclude="*.pyc" --exclude="__pycache__" --exclude=".env" "$LOCAL_PATH" "${REMOTE_USER}@${REMOTE_HOST}:${REMOTE_PATH}"
+# We use rsync to sync the entire container context and omit caches/secrets
+rsync -avz --exclude="*.pyc" --exclude="__pycache__" --exclude=".env" --exclude=".git" "$LOCAL_PATH" "${REMOTE_USER}@${REMOTE_HOST}:${REMOTE_PATH}"
 
-echo "Done! Make sure to restart the daemon on the remote server."
+echo "Done! To apply these changes on the server, you will need to rebuild the container:"
+echo "  docker compose up --build -d"
