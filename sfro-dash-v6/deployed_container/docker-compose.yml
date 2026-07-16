@@ -25,6 +25,7 @@ services:
       - /syncdata/FRA400-Data:/app/images/FRA400:ro
     environment:
       - DISCORD_TOKEN=${DISCORD_TOKEN}
+      - PYTHONUNBUFFERED=1
     working_dir: /app
     restart: unless-stopped
     labels:
