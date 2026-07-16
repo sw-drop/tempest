@@ -38,7 +38,8 @@ except ImportError as e:
     print(f"Error importing modules: {e}")
     sys.exit(1)
 
-DATA_DIR = os.path.abspath(os.path.join(ROOT_DIR, "..", "data"))
+APP_DIR = os.path.abspath(os.path.join(ROOT_DIR, "..", "app_data"))
+AGENT_DIR = os.path.abspath(os.path.join(ROOT_DIR, "..", "data"))
 IMAGES_DIR = os.path.abspath(os.path.join(ROOT_DIR, "..", "images"))
 API_KEY = os.environ.get("TEMPEST_API_KEY", "")
 
@@ -57,32 +58,32 @@ def job_image_watcher():
     # Since image_watcher is not fully refactored, we can use subprocess for now
     try:
         script = os.path.join(ROOT_DIR, 'scope_captures', 'image_watcher.py')
-        subprocess.run([sys.executable, script, "-o", DATA_DIR, "--images-dir", IMAGES_DIR], check=False)
+        subprocess.run([sys.executable, script, "-o", APP_DIR, "--images-dir", IMAGES_DIR], check=False)
     except Exception as e:
         print(f"Error in job_image_watcher: {e}", file=sys.stderr)
 
 def job_tempest():
     config = os.path.join(ROOT_DIR, "Tempest", "locations.json")
-    safe_run(update_weather.fetch_weather, API_KEY, DATA_DIR, config)
+    safe_run(update_weather.fetch_weather, API_KEY, APP_DIR, config)
 
 def job_roof():
     try:
         script = os.path.join(ROOT_DIR, 'scope_captures', 'fetch_roof.py')
-        subprocess.run([sys.executable, script, "-o", DATA_DIR], check=False)
+        subprocess.run([sys.executable, script, "-o", APP_DIR], check=False)
     except Exception as e:
         print(f"Error in job_roof: {e}", file=sys.stderr)
 
 def job_schema():
-    safe_run(schema_engine.evaluate_schema, DATA_DIR, schema_engine.LAT, schema_engine.LON)
+    safe_run(schema_engine.evaluate_schema, APP_DIR, AGENT_DIR, schema_engine.LAT, schema_engine.LON)
 
 def job_controller():
-    safe_run(controller.update_dashboard, DATA_DIR)
+    safe_run(controller.update_dashboard, APP_DIR, AGENT_DIR)
 
 def job_weather_starfront():
-    safe_run(fetch_forecast.fetch_forecast, lat=31.546944, lon=-99.382222, title="Observatory Forecast", subtitle="Starfront Observatory", timezone_str="America/Chicago", hours=8, out=os.path.join(DATA_DIR, "forecast_starfront.json"))
+    safe_run(fetch_forecast.fetch_forecast, lat=31.546944, lon=-99.382222, title="Observatory Forecast", subtitle="Starfront Observatory", timezone_str="America/Chicago", hours=8, out=os.path.join(APP_DIR, "forecast_starfront.json"))
 
 def job_weather_wandsworth():
-    safe_run(fetch_forecast.fetch_forecast, subtitle="London/Wandsworth", out=os.path.join(DATA_DIR, "forecast_wandsworth.json"))
+    safe_run(fetch_forecast.fetch_forecast, subtitle="London/Wandsworth", out=os.path.join(APP_DIR, "forecast_wandsworth.json"))
 
 def job_apod():
     try:
@@ -92,23 +93,24 @@ def job_apod():
         print(f"Error in job_apod: {e}", file=sys.stderr)
 
 def job_forecasts():
-    safe_run(fetch_forecasts.fetch_forecasts, out_dir=DATA_DIR)
+    safe_run(fetch_forecasts.fetch_forecasts, out_dir=APP_DIR)
 
 def job_captures():
     try:
         script = os.path.join(ROOT_DIR, 'scope_captures', 'fetch_captures.py')
-        subprocess.run([sys.executable, script, "-o", DATA_DIR], check=False)
+        subprocess.run([sys.executable, script, "-o", APP_DIR], check=False)
     except Exception as e:
         print(f"Error in job_captures: {e}", file=sys.stderr)
 
 def job_rates():
-    safe_run(fetch_rates.fetch_rates, out_dir=DATA_DIR)
+    safe_run(fetch_rates.fetch_rates, out_dir=APP_DIR)
 
 # ---------------------------------------------------------
 # Main Execution
 # ---------------------------------------------------------
 def main():
-    os.makedirs(DATA_DIR, exist_ok=True)
+    os.makedirs(APP_DIR, exist_ok=True)
+    os.makedirs(AGENT_DIR, exist_ok=True)
     os.makedirs(IMAGES_DIR, exist_ok=True)
     
     print("Starting SFRO Dash V6 Daemon...")

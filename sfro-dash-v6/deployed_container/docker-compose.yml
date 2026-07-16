@@ -7,7 +7,7 @@ services:
     volumes:
       - ./index.html:/usr/share/nginx/html/index.html:ro
       - ./index.js:/usr/share/nginx/html/index.js:ro
-      - ./data:/usr/share/nginx/html/data
+      - ./app_data:/usr/share/nginx/html/data
       - ./images:/usr/share/nginx/html/images
     restart: unless-stopped
     labels:

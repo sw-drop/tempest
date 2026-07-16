@@ -7,7 +7,7 @@ This guide details how to build and run the SFRO Dashboard V5 using Docker, matc
 ## Architecture Overview
 
 We use a two-container Docker Compose setup:
-1.  **`web` (`sfro-dash-v5-web`)**: An ultra-lightweight Nginx container that hosts the static frontend (`index.html`, `index.js`) and serves the compiled JSON and JPEG files from the `./data` folder.
+1.  **`web` (`sfro-dash-v5-web`)**: An ultra-lightweight Nginx container that hosts the static frontend (`index.html`, `index.js`) and serves the compiled JSON and JPEG files from the `./app_data` folder (mounted internally as `/data`).
 2.  **`scheduler` (`sfro-dash-v5-scheduler`)**: A Python 3.11 container running our master daemon loop (**`dash-scripts/daemon.py`**). It orchestrates:
     *   FITS watchdog (`image_watcher.py`) every 15 seconds.
     *   Active card controller (`controller.py`) every 15 seconds.
@@ -43,7 +43,7 @@ To ensure that the scheduler container writes files that are immediately writabl
 ```yaml
 user: "1000:1000"
 ```
-This guarantees that all output files in `/docker/sfro-dash-v5/data/` are created with `pi:pi` ownership, eliminating permission errors.
+This guarantees that all output files in `/docker/sfro-dash-v5/app_data/` and `/docker/sfro-dash-v5/data/` are created with `pi:pi` ownership, eliminating permission errors.
 
 ---
 

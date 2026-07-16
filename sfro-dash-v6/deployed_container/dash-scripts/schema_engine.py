@@ -71,9 +71,9 @@ def get_actual_roof_state(roof_path):
     except:
         return False
 
-def evaluate_schema(data_dir="/app/data", lat=LAT, lon=LON):
-    override_path = os.path.join(data_dir, "override.json")
-    roof_path = os.path.join(data_dir, "roof.json")
+def evaluate_schema(app_dir="/app/app_data", agent_dir="/app/data", lat=LAT, lon=LON):
+    override_path = os.path.join(agent_dir, "override.json")
+    roof_path = os.path.join(app_dir, "roof.json")
     
     # 1. Check override
     try:
@@ -142,10 +142,11 @@ def evaluate_schema(data_dir="/app/data", lat=LAT, lon=LON):
     return "RoofClosedEvening1" # Fallback
 
 def main():
-    data_dir = os.environ.get("DATA_DIR", "/app/data")
-    out_path = os.path.join(data_dir, "active_schema.json")
+    app_dir = os.environ.get("APP_DIR", "/app/app_data")
+    agent_dir = os.environ.get("AGENT_DIR", "/app/data")
+    out_path = os.path.join(app_dir, "active_schema.json")
     
-    schema = evaluate_schema(data_dir=data_dir)
+    schema = evaluate_schema(app_dir=app_dir, agent_dir=agent_dir)
     
     out_dir = os.path.dirname(out_path)
     if out_dir:
