@@ -1,0 +1,31 @@
+services:
+  web:
+    image: nginx:alpine
+    container_name: sfro-dash-v5-web
+    ports:
+      - "8025:80"
+    volumes:
+      - ./index.html:/usr/share/nginx/html/index.html:ro
+      - ./index.js:/usr/share/nginx/html/index.js:ro
+      - ./data:/usr/share/nginx/html/data
+      - ./images:/usr/share/nginx/html/images
+    restart: unless-stopped
+    labels:
+      - "io.portainer.accesscontrol.users=agent"
+
+  scheduler:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: sfro-dash-v5-scheduler
+    user: "1000:1000"
+    volumes:
+      - .:/app
+      - /syncdata/75Q-Data:/app/images/75Q:ro
+      - /syncdata/FRA400-Data:/app/images/FRA400:ro
+    environment:
+      - DISCORD_TOKEN=${DISCORD_TOKEN}
+    working_dir: /app
+    restart: unless-stopped
+    labels:
+      - "io.portainer.accesscontrol.users=agent"

@@ -1,0 +1,71 @@
+#!/usr/bin/env bash
+# obsu_night_sky_flower_monitor.sh – improved clear-sky monitor
+# Checks next 24h for >=2 consecutive hours with <15% cloud cover
+# Sends Telegram alerts during 10-20 UTC runtime window
+
+LAT="51.5074"
+LON="-0.1278"
+API="https://api.met.no/weatherapi/locationforecast/2.0/compact"
+USER_AGENT="Hermes-Agent/1.0 (test@pillay.uk)"
+
+# 1. Runtime window check (10-20 UTC)
+RUN_HOUR=$(date +%H)
+if (( RUN_HOUR < 10 || RUN_HOUR > 20 )); then
+    exit 0
+fi
+
+# 2. Fetch forecast
+RESPONSE=$(curl -s -A "$USER_AGENT" "${API}?lat=${LAT}&lon=${LON}")
+if [[ -z "$RESPONSE" ]]; then
+    exit 1
+fi
+
+# 3. Process and deliver alert via Python (stdout is natively sent to Telegram by Hermes)
+python3 - <<'EOF' "$RESPONSE"
+import sys, json
+from datetime import datetime, timedelta
+
+try:
+    data = json.loads(sys.argv[1])
+except:
+    sys.exit(1)
+
+ts = data.get('properties', {}).get('timeseries', [])
+clouds = []
+for e in ts[:25]:
+    try:
+        t = datetime.fromisoformat(e['time'].replace('Z', '+00:00'))
+        c = e['data']['instant']['details'].get('cloud_area_fraction')
+        if c is not None: clouds.append((t, float(c)))
+    except: pass
+
+# Find windows: >=2h consecutive with cloud <15%
+wins = []
+start = None
+for t, c in clouds:
+    if c < 15:
+        if start is None: start = t
+    else:
+        if start:
+            dur = (t - start).total_seconds() / 3600
+            if dur >= 2: wins.append((start, t))
+            start = None
+if start:
+    dur = (clouds[-1][0] - start).total_seconds() / 3600
+    if dur >= 2: wins.append((start, clouds[-1][0]))
+
+if not wins:
+    sys.exit(0)
+
+# Build BST message
+lines = []
+for s, e in wins:
+    sm = (s + timedelta(hours=1)).strftime('%H:%M')
+    em = (e + timedelta(hours=1)).strftime('%H:%M')
+    cvs = [c for _, c in clouds if s <= _ <= e]
+    mc = int(min(cvs)) if cvs else 0
+    lines.append('• ' + sm + '-' + em + ' BST (' + str(mc) + '% cloud)')
+
+msg = '🌙 *Clear-sky window(s):*\n' + '\n'.join(lines) + '\n\nCheck updates.'
+print(msg)
+EOF

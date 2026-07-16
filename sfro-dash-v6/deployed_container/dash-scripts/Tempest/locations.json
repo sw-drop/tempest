@@ -1,0 +1,42 @@
+{
+  "locations": [
+    {
+      "id": "starfront",
+      "title": "Starfront",
+      "source": "tempest",
+      "station_id": "174867",
+      "out": "v5-test/data/atmos_starfront.json"
+    },
+    {
+      "id": "umhlanga",
+      "title": "Umhlanga",
+      "source": "coordinates",
+      "latitude": -29.730028,
+      "longitude": 31.086496,
+      "out": "v5-test/data/atmos_umhlanga.json"
+    },
+    {
+      "id": "wandsworth",
+      "title": "Wandsworth",
+      "source": "coordinates",
+      "latitude": 51.4569,
+      "longitude": -0.1868,
+      "out": "v5-test/data/atmos_wandsworth.json"
+    },
+    {
+      "id": "cape_town",
+      "title": "Cape Town",
+      "source": "coordinates",
+      "latitude": -33.9249,
+      "longitude": 18.4241,
+      "out": "v5-test/data/atmos_cape_town.json"
+    },
+    {
+      "id": "zimbali",
+      "title": "Zimbali",
+      "source": "tempest",
+      "station_id": "41927",
+      "out": "v5-test/data/atmos_zimbali.json"
+    }
+  ]
+}

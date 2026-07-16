@@ -1,0 +1,6 @@
+requests==2.31.0
+pytz==2024.1
+astral==3.2
+astropy==6.0.0
+numpy==1.26.4
+schedule==1.2.1

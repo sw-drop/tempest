@@ -1,0 +1,15 @@
+# Ignore environment files
+.env
+.env.*
+!.env.example
+
+# Ignore scratch and temporary files
+kanini_scripts_baseline/scratch/
+__pycache__/
+*.pyc
+
+# Ignore live data and images
+deployed_container/data/*
+!deployed_container/data/.gitkeep
+deployed_container/images/*
+!deployed_container/images/.gitkeep

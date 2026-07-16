@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SFRO Observatory Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Color+Emoji&display=swap" rel="stylesheet">
+<!-- Astrospheric API Reference -->
+<script type="text/javascript" src="https://astrosphericcloudstorage.blob.core.windows.net/embed/astrosphericembed.js"></script>
+<style>
+:root { --bg:#080710; --fg:#fff; --muted:#888; --card:rgba(255,255,255,.05); --border:rgba(255,255,255,.1); --green:#10b981; --red:#ef4444; --blue:#4CAF50; --orange:#FF9800; }
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,"Noto Color Emoji",sans-serif;height:100vh;display:grid;grid-template-columns:repeat(12,1fr);grid-template-rows:repeat(12,1fr);gap:12px;padding:10px;overflow:hidden}
+
+/* Grid areas */
+.skycam     {grid-column:1/span 4; grid-row:1/span 7}
+.fra400img  {grid-column:5/span 4; grid-row:1/span 6}
+.q75img     {grid-column:5/span 4; grid-row:7/span 6}
+.atmos-left  {grid-column:1/span 2; grid-row:8/span 5}
+.atmos-right {grid-column:3/span 2; grid-row:8/span 5}
+.fra400cap  {grid-column:9/span 2; grid-row:5/span 3}
+.q75cap     {grid-column:11/span 2; grid-row:5/span 3}
+.forecast   {grid-column:9/span 4; grid-row:1/span 4}
+.roofbox    {grid-column:9/span 4; grid-row:8/span 4}
+.uktime     {grid-column:9/span 2; grid-row:12/span 1}
+.ustime     {grid-column:11/span 2; grid-row:12/span 1}
+
+.card{background:var(--card);border:1px solid var(--border);border-radius:8px;display:flex;flex-direction:column;overflow:hidden;height:100%}
+.card h3{margin:0 0 .6rem;padding:.8rem 1rem;font-size:1.5rem;color:#a5b4fc;text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid var(--border)}
+.content{flex:1;padding:.8rem 1rem;overflow:auto;display:flex;flex-direction:column;gap:.5rem}
+.imgwrap{flex:1;background:#111;display:flex;align-items:center;justify-content:center;overflow:hidden;position:relative}
+.imgwrap img{width:100%;height:100%;object-fit:contain}
+.imgheader{display:flex;justify-content:space-between;align-items:center;padding:.6rem 1rem;background:rgba(0,0,0,.5);border-bottom:1px solid var(--border)}
+.imgheader .title{font-size:1.4rem;font-weight:bold;color:#a5b4fc;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.imgheader .subtitle{font-size:1.1rem;color:#ccc;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* Forecast list - horizontal columns (no scroll) */
+.fc-horizontal-columns{width:100%;display:flex;flex-direction:row;justify-content:space-around;align-items:center;padding:4px 0;overflow:hidden}
+.fc-column{display:flex;flex-direction:column;align-items:center;gap:4px;width:11%;text-align:center;flex-shrink:0}
+.fc-column .fc-time{color:#888;font-size:1rem}
+.fc-column .fc-cond{height:32px;display:flex;align-items:center;justify-content:center}
+.fc-column .fc-cond img{width:32px;height:32px;object-fit:contain}
+.fc-column .fc-temp{color:#fff;font-weight:bold;font-size:1.2rem}
+.fc-column .fc-cloud-icon{height:20px;display:flex;align-items:center;justify-content:center;margin-top:2px}
+.fc-column .fc-cloud-icon img{width:20px;height:20px;object-fit:contain}
+.fc-column .fc-cloud{font-size:1rem}
+.fc-column .fc-rain-icon{font-size:1.1rem;color:#888;margin-top:2px}
+.fc-column .fc-rain-val{font-size:1rem;color:#ccc}
+.fc-column .fc-wind-icon{font-size:1.1rem;color:#888;margin-top:2px}
+.fc-column .fc-wind-val{font-size:1rem;color:#ccc}
+
+/* Time boxes */
+.timebox .content{align-items:center;justify-content:center;text-align:center}
+.timebox .time{font-size:2.5rem;font-weight:bold;line-height:1.1}
+.timebox .label{font-size:.95rem;text-transform:uppercase;letter-spacing:.05em;margin-top:4px}
+.uktime .label{color:var(--green)}
+.ustime .label{color:#00d2fc}
+
+/* Atmospheric list */
+.atmos-left ul, .atmos-right ul {list-style:none;padding:0;margin:0;width:100%;font-size:1.3rem;color:#ccc;flex:1;display:flex;flex-direction:column;justify-content:space-between}
+.atmos-left li, .atmos-right li {display:flex;justify-content:space-between;border-bottom:1px solid rgba(255,255,255,.05);padding-bottom:6px}
+.atmos-left li:last-child, .atmos-right li:last-child {border-bottom:none}
+.atmos-left span.value, .atmos-right span.value {color:#fff;font-weight:bold}
+
+/* Roof status */
+.roofbox .content{justify-content:center;align-items:flex-start;text-align:left}
+.roofbox .status{font-size:1.6rem;font-weight:bold;line-height:1.4;white-space:pre-wrap}
+
+/* Capture text */
+.capbox .content{flex:1;display:flex;flex-direction:column;justify-content:center;font-size:1.3rem;line-height:1.5;color:#ccc;white-space:pre-wrap}
+
+/* Daytime mode hidden elements */
+.daytime-only{display:none}
+
+/* Responsive font fitting helper */
+.fit-text{transition:font-size .1s}
+</style>
+</head>
+<body>
+<script>
+// ---- observations.json (from Tempest collector) ----
+const OBS = {
+  "physical_roof_status": "Closed",
+  "processed": {
+    "daytime_status": "nighttime",
+    "metrics": {
+      "temp_c": 31.7,
+      "wind_avg_mph": 7.6,
+      "wind_gust_mph": 12.1,
+      "humidity": 47,
+      "dew_point_c": 19.0,
+      "dew_point_margin_c": 12.7,
+      "precip_mm": 0.0,
+      "pressure_hpa": 960.4
+    },
+    "night_forecast": [
+      {"timestamp":1783731600,"cloud":12.5,"symbol_code":"clearsky_night","temp_c":33.0},
+      {"timestamp":1783735200,"cloud":3.1,"symbol_code":"clearsky_night","temp_c":31.4},
+      {"timestamp":1783738800,"cloud":1.6,"symbol_code":"clearsky_night","temp_c":30.1},
+      {"timestamp":1783742400,"cloud":2.3,"symbol_code":"clearsky_night","temp_c":28.8},
+      {"timestamp":1783746000,"cloud":1.6,"symbol_code":"clearsky_night","temp_c":28.0},
+      {"timestamp":1783749600,"cloud":0.8,"symbol_code":"clearsky_night","temp_c":27.4},
+      {"timestamp":1783753200,"cloud":0.8,"symbol_code":"clearsky_night","temp_c":26.8},
+      {"timestamp":1783756800,"cloud":0.8,"symbol_code":"clearsky_night","temp_c":26.1},
+      {"timestamp":1783760400,"cloud":0.0,"symbol_code":"clearsky_night","temp_c":25.5},
+      {"timestamp":1783764000,"cloud":0.8,"symbol_code":"clearsky_night","temp_c":25.0},
+      {"timestamp":1783767600,"cloud":3.1,"symbol_code":"clearsky_night","temp_c":24.7},
+      {"timestamp":1783771200,"cloud":4.7,"symbol_code":"clearsky_day","temp_c":24.4}
+    ],
+    "checks": {
+      "wind": {"val":"7.6","unit":"mph","ok":true},
+      "wind_gust": {"val":"12.1","unit":"mph","ok":true},
+      "temperature": {"val":"31.7","unit":"°C","ok":true},
+      "humidity": {"val":"47","unit":"%","ok":true},
+      "dew_point_margin": {"val":"12.7","unit":"°C","ok":true}
+    }
+  },
+  "roof_status": {
+    "checks": {
+      "wind": {"val":"7.6","unit":"mph","ok":true},
+      "wind_gust": {"val":"12.1","unit":"mph","ok":true},
+      "temperature": {"val":"31.7","unit":"°C","ok":true},
+      "humidity": {"val":"47","unit":"%","ok":true},
+      "dew_point_margin": {"val":"12.7","unit":"°C","ok":true},
+      "clouds": {"val":"12","unit":"%","ok":true}
+    }
+  }
+};
+
+// ---- reports.json (from nightly capture script) ----
+const REPORTS = {
+  "capture": "🔭 Nightly Capture & Operations Report - Saturday\n\n📸 Exposure Summary\n  * FRA400:\n    * Target: NGC 6871 Panel 4 x 44 Images\n    * Target: NGC 6871 Panel 2 x 30 Images\n    * Target: NGC 6871 Panel 1 x 3 Images\n  * 75Q:\n    * Target: IC 5146 Cocoon Nebula x 73 Images\n\n🏠\nRoof Status: 🟢 OPEN (at 06:52 Central)\n\nNightly Plan – 11 July 2026\nRoofs very likely OPEN all night!\n\nForecast:\n- No rain risk!\n- CLEAR SKIES likely all night!\n- Southerly winds around 7 MPH with gusts up to 11 MPH early decreasing to 2-4 MPH with gusts up to 7 MPH by morning.\n- Tomorrow's outlook: Clear skies likely in the first half of the night with a low to moderate chance of low and/or mid-level clouds at times after that.",
+  "forecast": "🌌 NIGHTScape: 06:52 Central: CLEAR SKIES all night"
+};
+
+// ---- Image metadata ----
+const IMAGES = {
+  "fra400": {"target":"NGC 6871","filename":"FRA400_20240710_040001.fits"},
+  "75q":    {"target":"IC 5146","filename":"75Q_20240710_040001.fits"}
+};
+</script>
+
+<!-- Page structure -->
+<div class="card skycam" id="skycam-card">
+  <h3>Live All-Sky Camera</h3>
+  <div class="content" style="padding:0;flex:1;display:flex;flex-direction:column">
+    <div style="padding:.6rem 1rem;background:rgba(0,0,0,.5);border-bottom:1px solid var(--border);display:flex;justify-content:space-between">
+      <span id="skycam-subtitle"></span>
+      <div id="conn-status" style="font-size:1rem;color:var(--green);font-weight:bold">Connected</div>
+    </div>
+    <div class="imgwrap" style="flex:1">
+      <img id="allsky-img" src="" alt="All-Sky Camera">
+      <div id="skycam-text" class="text-fallback" style="display:none; padding:1.2rem; font-size:1.3rem; overflow:auto; white-space:pre-wrap; width:100%; height:100%;"></div>
+    </div>
+  </div>
+</div>
+
+<div class="card fra400img" id="fra400img-card">
+  <div class="imgheader"><div class="title" id="fra400-target"></div><div class="subtitle" id="fra400-title">FRA400 Loading…</div></div>
+  <div class="imgwrap">
+    <img id="fra400-img" src="" alt="FRA400">
+    <div id="fra400-text" class="text-fallback" style="display:none; padding:1.2rem; font-size:1.3rem; overflow:auto; white-space:pre-wrap; width:100%; height:100%; color:#ccc;"></div>
+  </div>
+</div>
+
+<div class="card q75img" id="q75img-card">
+  <div class="imgheader"><div class="title" id="q75-target"></div><div class="subtitle" id="q75-title">75Q Loading…</div></div>
+  <div class="imgwrap">
+    <img id="q75-img" src="" alt="75Q">
+    <div id="q75-text" class="text-fallback" style="display:none; padding:1.2rem; font-size:1.3rem; overflow:auto; white-space:pre-wrap; width:100%; height:100%; color:#ccc;"></div>
+  </div>
+</div>
+
+<div class="card atmos-left" id="atmos-left-card">
+  <h3 id="atmos-left-title">Atmospheric Parameters</h3>
+  <div class="content">
+    <ul id="atmos-left-list">
+      <li><span>Wind</span><span id="test-wind" class="value">--</span></li>
+      <li><span>Wind Gust</span><span id="test-wg" class="value">--</span></li>
+      <li><span>Temp</span><span id="test-temp" class="value">--</span></li>
+      <li><span>Humidity</span><span id="test-hum" class="value">--</span></li>
+      <li><span>Dew Pt</span><span id="val-dp" class="value">--</span></li>
+      <li><span>Dew Pt Margin</span><span id="test-dp" class="value">--</span></li>
+      <li><span>Precip</span><span id="val-precip" class="value">--</span></li>
+      <li><span>Clouds</span><span id="test-clouds" class="value">--</span></li>
+    </ul>
+    <div id="atmos-left-text" class="text-fallback" style="display:none; font-size:1.3rem; color:#ccc; line-height:1.5; white-space:pre-wrap; overflow:auto; height:100%;"></div>
+  </div>
+</div>
+
+<div class="card atmos-right" id="atmos-right-card">
+  <h3 id="atmos-right-title">Atmospheric Parameters</h3>
+  <div class="content">
+    <ul id="atmos-right-list">
+      <li><span>Wind</span><span id="test-wind" class="value">--</span></li>
+      <li><span>Wind Gust</span><span id="test-wg" class="value">--</span></li>
+      <li><span>Temp</span><span id="test-temp" class="value">--</span></li>
+      <li><span>Humidity</span><span id="test-hum" class="value">--</span></li>
+      <li><span>Dew Pt</span><span id="val-dp" class="value">--</span></li>
+      <li><span>Dew Pt Margin</span><span id="test-dp" class="value">--</span></li>
+      <li><span>Precip</span><span id="val-precip" class="value">--</span></li>
+      <li><span>Clouds</span><span id="test-clouds" class="value">--</span></li>
+    </ul>
+    <div id="atmos-right-text" class="text-fallback" style="display:none; font-size:1.3rem; color:#ccc; line-height:1.5; white-space:pre-wrap; overflow:auto; height:100%;"></div>
+  </div>
+</div>
+
+<div class="card fra400cap capbox" id="fra400cap-card">
+  <h3 id="fra400cap-title">FRA400 Forecast</h3>
+  <div class="content" id="fra400cap-text" style="white-space:pre-wrap; overflow:auto; font-size:1.3rem;">Loading report…</div>
+</div>
+
+<div class="card q75cap capbox" id="q75cap-card">
+  <h3 id="q75cap-title">75Q Forecast</h3>
+  <div class="content" id="q75cap-text" style="white-space:pre-wrap; overflow:auto; font-size:1.3rem;">Loading report…</div>
+</div>
+
+<div class="card forecast" id="forecast-card">
+  <h3 id="forecast-header">ROOF STATUS</h3>
+  <div class="content" style="padding:.6rem .8rem;overflow:auto">
+    <div id="forecast-timeline">
+      <div style="color:#ccc;font-size:1.2rem;padding:1rem">Loading forecast…</div>
+    </div>
+    <div id="forecast-text" class="text-fallback" style="display:none; font-size:1.3rem; color:#ccc; line-height:1.5; white-space:pre-wrap; overflow:auto; height:100%;"></div>
+  </div>
+</div>
+
+<div class="card roofbox" id="roofbox-card">
+  <h3 id="roofbox-title">Roof Status</h3>
+  <div class="content">
+    <div id="roof-info-text" class="status">Loading roof status…</div>
+    <div id="roofbox-text" class="text-fallback" style="display:none; font-size:1.3rem; color:#ccc; line-height:1.5; white-space:pre-wrap; overflow:auto; height:100%;"></div>
+  </div>
+</div>
+
+<div class="card timebox uktime" id="uktime-card">
+  <div class="content">
+    <div id="time-uk" class="time">--:--:--</div>
+    <div class="label">Local Time (UK/BST)</div>
+  </div>
+</div>
+
+<div class="card timebox ustime" id="ustime-card">
+  <div class="content">
+    <div id="time-us" class="time">--:--:--</div>
+    <div class="label">US Central Time</div>
+  </div>
+</div>
+
+<script>
+/* ==================== DASHBOARD LOGIC ==================== */
+
+// ---- Helpers ----
+const $ = id => document.getElementById(id);
+const setText = (id, txt, color) => { const el=$(id); if(el){el.textContent=txt; if(color)el.style.color=color;} };
+
+function cloudColor(pct){
+  if(pct<=30) return '#4CAF50';
+  if(pct<=70) return '#FF9800';
+  return '#fff';
+}
+
+function emojiFromCode(code){
+  if(!code) return '☁️';
+  const c=code.toLowerCase();
+  if(c.includes('clearsky')) return c.includes('night')?'🌙':'☀️';
+  if(c.includes('fair')) return c.includes('night')?'🌤️':'🌤️';
+  if(c.includes('partlycloudy')) return '⛅';
+  if(c.includes('cloudy')) return '☁️';
+  if(c.includes('rain')||c.includes('sleet')) return '🌧️';
+  if(c.includes('snow')) return '❄️';
+  if(c.includes('thunder')) return '⛈️';
+  if(c.includes('fog')) return '🌫️';
+  return '☁️';
+}
+
+function parseSafeMarkdown(str) {
+  if (!str) return '';
+  // 1. Smartly escape stray < symbols (like <20%) but allow real HTML tags (like <div>)
+  let out = str.replace(/<(?![a-zA-Z/])/g, '&lt;');
+  // 2. Parse basic markdown bold and italics
+  out = out.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>');
+  out = out.replace(/\*(?!\s)(.*?)(?<!\s)\*/g, '<i>$1</i>');
+  return out;
+}
+
+// Fit text to container
+function fitText(el, maxSize=1.2){
+  const element = typeof el === 'string' ? $(el) : el;
+  if(!element) return;
+  let size=maxSize; element.style.fontSize=size+'rem';
+  while((element.scrollHeight>element.clientHeight||element.scrollWidth>element.clientWidth)&&size>0.6){
+    size-=0.1; element.style.fontSize=size+'rem';
+  }
+}
+
+// ---- Clocks ----
+function updateClocks(){
+  const now=new Date();
+  $('time-uk').textContent=now.toLocaleTimeString('en-GB',{hour12:false});
+  $('time-us').textContent=now.toLocaleTimeString('en-US',{hour12:false,timeZone:'America/Chicago'});
+}
+setInterval(updateClocks,1000); updateClocks();
+
+// ---- Card Mapping Registry ----
+const CARD_REGISTRY = {
+  "skycam-card": "skycam.json",
+  "fra400img-card": "fra400.json",
+  "q75img-card": "75q.json",
+  "atmos-left-card": "atmos_left.json",
+  "atmos-right-card": "atmos_right.json",
+  "fra400cap-card": "fra400cap.json",
+  "q75cap-card": "q75cap.json",
+  "forecast-card": "forecast.json",
+  "roofbox-card": "roof.json"
+};
+
+const DATA_PREFIX = (window.location.protocol === 'file:' || window.location.pathname.includes('v5-test')) ? 'v5-test/data/' : 'data/';
+
+// ---- Card Renderer ----
+function renderCard(cardId, data) {
+  const card = $(cardId);
+  if (!card) return;
+
+  // 1) Update Title
+  const title = card.querySelector('h3') || card.querySelector('#forecast-header') || card.querySelector('.title');
+  if (title) {
+    if (!title.hasAttribute('data-orig')) {
+      title.setAttribute('data-orig', title.textContent);
+    }
+    
+    if (data.title) {
+      title.textContent = data.title;
+    } else {
+      title.textContent = title.getAttribute('data-orig');
+    }
+    
+    if (data.title_color) {
+      title.style.color = data.title_color;
+    } else {
+      title.style.color = '';
+    }
+  }
+  
+  let subtitleEl = card.querySelector('#' + cardId.replace('-card', '-subtitle')) || 
+                   card.querySelector('.imgheader .subtitle') || 
+                   card.querySelector('#fra400-title') || 
+                   card.querySelector('#q75-title') ||
+                   card.querySelector('#forecast-header');
+  if (subtitleEl && data.subtitle !== undefined) {
+    subtitleEl.textContent = data.subtitle;
+  }
+
+  // 2) Render content depending on type
+  const type = data.type;
+  const payload = data.data || {};
+
+  if (type === 'image') {
+    const img = card.querySelector('img');
+    const txt = card.querySelector('.text-fallback');
+    if (img) {
+      img.style.display = 'block';
+      let src = payload.src || '';
+      if (src && !src.startsWith('http') && !src.startsWith('/') && !src.startsWith('v5-test/') && !src.startsWith('data/') && !src.startsWith('./images/') && !src.startsWith('images/')) {
+        src = DATA_PREFIX + src;
+      }
+      img.src = src + (src.includes('?') ? '&' : '?') + 't=' + Date.now();
+      img.alt = payload.alt || '';
+    }
+    if (txt) {
+      txt.style.display = 'none';
+    }
+  } 
+  else if (type === 'text') {
+    const img = card.querySelector('img');
+    const txt = card.querySelector('.text-fallback') || 
+                card.querySelector('#fra400cap-text') || 
+                card.querySelector('#q75cap-text') ||
+                card.querySelector('#forecast-text') ||
+                card.querySelector('#atmos-text');
+    if (img) {
+      img.style.display = 'none';
+    }
+    if (txt) {
+      txt.style.display = 'block';
+      if (payload.text) {
+        txt.innerHTML = parseSafeMarkdown(payload.text);
+        if (payload.text.includes("AstrosphericEmbedContainer")) {
+          setTimeout(() => {
+            if (typeof m_AstrosphericEmbed !== 'undefined') {
+              m_AstrosphericEmbed.Create('AstrosphericEmbedContainer', 31.546944, -99.382222);
+            }
+          }, 200);
+        }
+      } else {
+        txt.textContent = '';
+      }
+      setTimeout(() => fitText(txt, 1.3), 50);
+    }
+    // Hide specialized elements if any
+    const ul = card.querySelector('ul');
+    if (ul) ul.style.display = 'none';
+    const tl = card.querySelector('#forecast-timeline');
+    if (tl) tl.style.display = 'none';
+    const stat = card.querySelector('.status');
+    if (stat) stat.style.display = 'none';
+  } 
+  else if (type === 'list') {
+    const ul = card.querySelector('ul');
+    const txt = card.querySelector('[id$="-text"]');
+    if (ul) {
+      ul.style.display = 'flex';
+      ul.innerHTML = '';
+      (payload.items || []).forEach(item => {
+        const li = document.createElement('li');
+        li.innerHTML = `<span>${item.label}</span><span class="value" style="color: ${item.color || '#fff'}">${item.value}</span>`;
+        ul.appendChild(li);
+      });
+    }
+    if (txt) {
+      txt.style.display = 'none';
+    }
+  } 
+  else if (type === 'forecast') {
+    const tl = card.querySelector('#forecast-timeline');
+    const txt = card.querySelector('#forecast-text');
+    if (tl) {
+      tl.style.display = 'block';
+      tl.innerHTML = '';
+      const timeline = payload.timeline || [];
+      if (timeline.length) {
+        const listContainer = document.createElement('div');
+        listContainer.className = 'fc-horizontal-columns';
+        timeline.forEach(it => {
+          const colDiv = document.createElement('div');
+          colDiv.className = 'fc-column';
+          
+          let tStr = it.time || '';
+          if (it.timestamp) {
+            const d = new Date(it.timestamp * 1000);
+            tStr = d.toLocaleTimeString('en-US', {hour: 'numeric', hour12: false});
+          }
+          
+          if (it.event) {
+            const isSunset = it.event.toLowerCase() === 'sunset';
+            const eventColor = '#ff9800';
+            const arrowChar = isSunset ? '↓' : '↑';
+            
+            // Option 8: Geometric Rayburst Sunset/Sunrise (using eventColor)
+            const eventIconImg = `
+              <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="${eventColor}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M17 17a5 5 0 1 0-10 0" fill="${eventColor}" fill-opacity="0.2"/>
+                <line x1="2" y1="19" x2="22" y2="19" stroke-width="2.5"/>
+                <line x1="12" y1="3" x2="12" y2="6"/>
+                <line x1="5" y1="8" x2="7" y2="10"/>
+                <line x1="19" y1="8" x2="17" y2="10"/>
+                <line x1="2" y1="14" x2="5" y2="14"/>
+                <line x1="22" y1="14" x2="19" y2="14"/>
+              </svg>
+            `;
+            
+            colDiv.innerHTML = `
+              <div class="fc-time">${tStr}</div>
+              <div class="fc-cond" style="color: ${eventColor}; font-size: 1.1rem; text-transform: uppercase; font-weight: bold; display: flex; align-items: center; justify-content: center; height: 32px;">${it.event}</div>
+              <div class="fc-temp">&nbsp;</div>
+              <div class="fc-cloud-icon" style="height: 28px; margin-top: 4px; display: flex; align-items: center; justify-content: center;">${eventIconImg}</div>
+              <div class="fc-cloud">&nbsp;</div>
+              <div class="fc-rain-icon" style="font-size: 1.6rem; font-weight: bold; color: ${eventColor}; margin-top: 4px; line-height: 1; display: flex; align-items: center; justify-content: center; height: 20px;">${arrowChar}</div>
+              <div class="fc-rain-val">&nbsp;</div>
+              <div class="fc-wind-icon">&nbsp;</div>
+              <div class="fc-wind-val">&nbsp;</div>
+            `;
+          } else {
+            // Official yr.no weather icon SVG URL from jsDelivr CDN
+            const symbolUrl = it.symbol_code ? `https://cdn.jsdelivr.net/gh/metno/weathericons@main/weather/svg/${it.symbol_code}.svg` : '';
+            const symbolImg = symbolUrl ? `<img src="${symbolUrl}" alt="${it.symbol_code}">` : '';
+            
+            // Official yr.no static cloud icon SVG from jsDelivr CDN
+            const cloudIconUrl = 'https://cdn.jsdelivr.net/gh/metno/weathericons@main/weather/svg/cloudy.svg';
+            const cloudIconImg = `<img src="${cloudIconUrl}" alt="Cloud">`;
+            
+            const tempVal = it.temp !== undefined ? Math.round(it.temp) + '°' : '--°';
+            const cloudVal = it.cloud !== undefined ? Math.round(it.cloud) + '%' : '--%';
+            
+            const precipVal = it.precip !== undefined ? it.precip.toFixed(1) + 'mm' : '0.0mm';
+            const precipColor = it.precip !== undefined && it.precip > 0.0 ? '#00d2fc' : '#888';
+            
+            const windVal = it.wind !== undefined ? Math.round(it.wind) + 'mph' : '--mph';
+            const windColor = it.wind !== undefined && it.wind > 28.0 ? 'var(--red)' : '#ccc';
+            
+            colDiv.innerHTML = `
+              <div class="fc-time">${tStr}</div>
+              <div class="fc-cond" title="${it.symbol_code || ''}">${symbolImg}</div>
+              <div class="fc-temp">${tempVal}</div>
+              <div class="fc-cloud-icon">${cloudIconImg}</div>
+              <div class="fc-cloud" style="color:${it.cloudColor || cloudColor(it.cloud)}">${cloudVal}</div>
+              <div class="fc-rain-icon">💧</div>
+              <div class="fc-rain-val" style="color:${precipColor}">${precipVal}</div>
+              <div class="fc-wind-icon">💨</div>
+              <div class="fc-wind-val" style="color:${windColor}">${windVal}</div>
+            `;
+          }
+          listContainer.appendChild(colDiv);
+        });
+        tl.appendChild(listContainer);
+        setTimeout(() => fitText('forecast-timeline', 1.3), 50);
+      }
+    }
+    if (txt) {
+      txt.style.display = 'none';
+    }
+  } 
+  else if (type === 'status') {
+    const info = card.querySelector('#roof-info-text');
+    const txtFallback = card.querySelector('.text-fallback');
+    if (txtFallback) txtFallback.style.display = 'none';
+    
+    if (info) {
+      info.style.display = 'block';
+      info.textContent = payload.status || '';
+      info.style.color = payload.color || 'var(--green)';
+      
+      const oldDetails = info.querySelector('.details-box');
+      if (oldDetails) oldDetails.remove();
+      
+      if (payload.details) {
+        const details = document.createElement('div');
+        details.className = 'details-box';
+        details.style.fontSize = '1rem';
+        details.style.color = '#ccc';
+        details.style.marginTop = '.5rem';
+        details.style.whiteSpace = 'pre-wrap';
+        details.innerHTML = parseSafeMarkdown(payload.details);
+        info.appendChild(details);
+      }
+      setTimeout(() => fitText('roof-info-text', 1.6), 50);
+    }
+  }
+}
+
+// ---- Unified Update Engine ----
+async function fetchAndRenderAll() {
+  let hasError = false;
+  for (const [cardId, jsonUrl] of Object.entries(CARD_REGISTRY)) {
+    try {
+      const response = await fetch(DATA_PREFIX + jsonUrl + '?t=' + Date.now());
+      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+      const data = await response.json();
+      renderCard(cardId, data);
+    } catch (err) {
+      console.error(`Error loading card ${cardId} from ${jsonUrl}:`, err);
+      hasError = true;
+      const card = $(cardId);
+      if (card) {
+        const sub = card.querySelector('.imgheader .subtitle') || card.querySelector('#forecast-header') || card.querySelector('h3');
+        if (sub) {
+          sub.textContent = 'Error Loading Data';
+          sub.style.color = 'var(--red)';
+        }
+      }
+    }
+  }
+  const statusEl = $('conn-status');
+  if (statusEl) {
+    statusEl.textContent = hasError ? 'Connection Error' : 'Connected';
+    statusEl.style.color = hasError ? 'var(--red)' : 'var(--green)';
+  }
+}
+
+// Initial run
+fetchAndRenderAll();
+// Periodic update loop
+setInterval(fetchAndRenderAll, 30000);
+
+// Handle resize
+window.addEventListener('resize',()=>{
+  fitText('roof-info-text', 1.6);
+  fitText('fra400cap-text', 1.3);
+  fitText('q75cap-text', 1.3);
+  fitText('forecast-timeline', 1.3);
+  const atmosLeftTxt = $('atmos-left-text');
+  if (atmosLeftTxt && atmosLeftTxt.style.display !== 'none') fitText(atmosLeftTxt, 1.3);
+  const atmosRightTxt = $('atmos-right-text');
+  if (atmosRightTxt && atmosRightTxt.style.display !== 'none') fitText(atmosRightTxt, 1.3);
+  const forecastTxt = $('forecast-text');
+  if (forecastTxt && forecastTxt.style.display !== 'none') fitText(forecastTxt, 1.3);
+});
+</script>
+</body>
+</html>

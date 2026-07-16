@@ -1,0 +1,16 @@
+{
+  "active_mode": "captures",
+  "weather_location": {
+    "lat": 31.546944,
+    "lon": -99.382222,
+    "subtitle": "Starfront (Texas)",
+    "timezone": "America/Chicago"
+  },
+  "refresh_intervals_seconds": {
+    "controller": 90,
+    "weather": 300,
+    "roof": 300,
+    "images": 60
+  },
+  "overrides": {}
+}
