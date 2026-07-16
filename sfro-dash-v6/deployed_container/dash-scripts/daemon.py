@@ -41,7 +41,7 @@ except ImportError as e:
 APP_DIR = os.path.abspath(os.path.join(ROOT_DIR, "..", "app_data"))
 AGENT_DIR = os.path.abspath(os.path.join(ROOT_DIR, "..", "data"))
 IMAGES_DIR = os.path.abspath(os.path.join(ROOT_DIR, "..", "images"))
-API_KEY = os.environ.get("TEMPEST_API_KEY", "")
+API_KEY = os.environ.get("TEMPEST_API_KEY", "") or getattr(update_weather, "DEFAULT_API_KEY", "")
 
 def safe_run(func, *args, **kwargs):
     """Wrapper to catch exceptions and prevent the scheduler from crashing."""
