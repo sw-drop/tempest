@@ -201,16 +201,19 @@ def update_dashboard(app_dir, agent_dir):
                 roof_data["data"]["details"] = f"{wait_alert}**Starfront Forecast:**\n{hermes_summary}"
                 save_json(os.path.join(app_dir, "roof.json"), roof_data)
 
-    # 5. Atmos Cards
+    # 5. Atmos & Forecast Cards
     if active_state["weather"] == "wandsworth":
         left_data = load_json(os.path.join(app_dir, "atmos_wandsworth.json"))
         right_data = load_json(os.path.join(app_dir, "atmos_umhlanga.json"))
+        forecast_data = load_json(os.path.join(app_dir, "forecast_wandsworth.json"))
     else:
         left_data = load_json(os.path.join(app_dir, "atmos_starfront.json"))
         right_data = load_json(os.path.join(app_dir, "atmos_umhlanga.json"))
+        forecast_data = load_json(os.path.join(app_dir, "forecast_starfront.json"))
         
     if left_data: save_json(os.path.join(app_dir, "atmos_left.json"), left_data)
     if right_data: save_json(os.path.join(app_dir, "atmos_right.json"), right_data)
+    if forecast_data: save_json(os.path.join(app_dir, "forecast.json"), forecast_data)
 
     # 6. Capture Cards
     if os.path.exists(os.path.join(agent_dir, "custom_fra400cap.json")):
