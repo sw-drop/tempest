@@ -1,6 +1,6 @@
-# Starfront Observatory Dashboard (SFRO-Dash V5)
+# Starfront Observatory Dashboard (SFRO-Dash V6)
 
-This repository contains the architecture, scripts, and deployment configuration for the **SFRO Dashboard V5**. 
+This repository contains the architecture, scripts, and deployment configuration for the **SFRO Dashboard V6**. 
 
 ---
 
@@ -8,23 +8,23 @@ This repository contains the architecture, scripts, and deployment configuration
 
 The dashboard runs inside a two-container Docker stack deployed on **`Pi5-1`** (accessible locally at `http://192.168.1.51:8025/index.html`):
 
-*   **`sfro-dash-v5-web` (Nginx)**: Serves the static page assets (`index.html`) and acts as the data API.
-*   **`sfro-dash-v5-scheduler` (Python)**: Runs our master loop daemon (`runner.py`) as user `1000` (`pi`). It triggers background updates to compile JSON files served by the Nginx instance.
+*   **`sfro-dash-v5-web` (Nginx)**: Serves the static page assets (`index.html`) and serves the finalized JSON card files from `./app_data` (mapped internally to `/usr/share/nginx/html/data`).
+*   **`sfro-dash-v5-scheduler` (Python)**: Runs our unified master loop scheduler (`daemon.py`) as user `1000` (`pi`). It orchestrates background scraping tasks and evaluates the active schema automatically via the FSM engine (`schema_engine.py`).
 
 ```text
-sfro-dash-v5/ (Project Root)
+sfro-dash-v6/ (Project Root)
 ├── Dockerfile
 ├── requirements.txt
 ├── docker-compose.yml
 ├── index.html
 ├── index.js
-├── deploy_v5.py
+├── deploy.sh
 └── dash-scripts/                <-- All python execution code lives here
-    ├── runner.py                <-- Master loop runner
-    ├── dashboard_config.json    <-- Unified state configuration file
+    ├── daemon.py                <-- Master loop scheduler
+    ├── schema_engine.py         <-- FSM schema decision engine
     ├── Tempest/                 <-- Tempest & coordinates weather observer
     ├── currency_rates/          <-- Exchange rate compiler
-    ├── dashboard_controller/    <-- active_mode controller
+    ├── dashboard_controller/    <-- active_schema routing controller
     ├── scope_captures/          <-- Discord logs and FITS image watchdog
     ├── scope_forecast/          <-- NINA target schedule compiler
     └── yr_forecast/             <-- MET Norway hourly weather timeline
@@ -32,27 +32,38 @@ sfro-dash-v5/ (Project Root)
 
 ---
 
-## 2. Shared Directories & Mounts
+## 2. Shared Directories & Safety Isolation
 
-*   **`data/`**: Shared directory bind-mounted between the scheduler and Nginx. This folder holds the compiled JSON configurations (e.g. `forecast.json`, `fra400.json`, `skycam.json`) and the downscaled telescope JPEGs.
-*   **`images/`**: Mounted inside the scheduler container pointing to the raw telescope folders `/syncdata/75Q-Data/` and `/syncdata/FRA400-Data/` on the server host (read-only).
-*   **Permissions**: All files created inside `data/` are automatically owned by user `1000:1000` (`pi:pi`), meaning they are immediately readable and writable by the host user and the Hermes agent.
+To prevent remote agents (like Hermes) from accidentally overwriting system files, we split the directories:
+
+*   **`app_data/` (System Output)**: Protected directory where the Python scheduler writes compiled JSON configurations (e.g. `forecast.json`, `fra400.json`, `skycam.json`) and the downscaled telescope JPEGs. Mapped to Nginx.
+*   **`data/` (Agent Inbox)**: Directory where the remote agent writes custom card overrides (`custom_*.json`, `override.json`) and text reports (`reports/*.txt`).
+*   **Permissions**: Both directories are owned by user `1000:1000` (`pi:pi`) on the host.
 
 ---
 
-## 3. Dynamic Card Toggling
+## 3. Dynamic Card Overrides (Agent Interface)
 
-To change the contents of the telescope dashboard cards, the Hermes agent edits the unified configuration file located at **`dash-scripts/dashboard_config.json`**:
-```json
-{
-  "active_mode": "captures",
-  "weather_location": { ... }
-}
-```
-Supported modes are:
-1.  `captures`: Displays actual overnight exposures logged in the telescope Discord channels.
-2.  `forecasts`: Displays planned NINA target schedules for the coming night.
-3.  `rates`: Displays active currency exchange rates.
+The dashboard routing is fully automated. If a manual override is needed, write a JSON file to the **`data/`** directory. The controller will instantly prioritize it:
+
+1.  **Global Layout Override (`override.json`)**:
+    Force a specific schema layout (e.g. `Supper1`):
+    ```json
+    {"override": "Supper1"}
+    ```
+2.  **Custom Card Override (`custom_<cardname>.json`)**:
+    Override a specific card slot (e.g., `custom_roof.json` or `custom_75q.json`):
+    ```json
+    {
+      "title": "Alert / Status Log",
+      "subtitle": "System Message",
+      "type": "text",
+      "data": {
+        "text": "Maintenance in progress."
+      }
+    }
+    ```
+    Delete the override JSON file to revert back to automated background rotations.
 
 ---
 

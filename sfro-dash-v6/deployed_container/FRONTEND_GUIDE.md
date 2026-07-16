@@ -10,7 +10,7 @@ The dashboard is built on a responsive 12x12 CSS Grid layout.
 Each distinct area of the dashboard is an empty shell called a "Card", identified by a unique HTML ID.
 
 ### Existing Card Registry Mapping
-By default, the `fetchAndRenderAll()` function maps these card IDs to specific JSON files in the `v5-test/data/` (or `data/`) directory:
+By default, the `fetchAndRenderAll()` function maps these card IDs to specific JSON files in the `app_data/` directory:
 
 | Card ID | Default JSON Source | Default Purpose |
 |---------|---------------------|-----------------|
