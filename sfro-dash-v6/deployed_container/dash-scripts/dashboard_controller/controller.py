@@ -170,15 +170,12 @@ def update_dashboard(app_dir, agent_dir):
             mtime = os.path.getmtime(backup_file)
             report_dt = datetime.fromtimestamp(mtime)
             report_date_str = report_dt.strftime("%Y-%m-%d %H:%M")
-            subtitle = f"Hermes Agent ({report_dt.strftime('%b %d, %H:%M')})"
             if summary_txt and not "Awaiting" in summary_txt:
                 summary_txt = f"**Report Date:** {report_date_str}\n{summary_txt}"
-        else:
-            subtitle = "Hermes Agent"
 
         save_json(os.path.join(app_dir, "75q.json"), {
             "title": "Daily Backup Volume Report", 
-            "subtitle": subtitle, 
+            "subtitle": "Hermes Agent", 
             "type": "text", 
             "data": {"text": summary_txt}
         })
