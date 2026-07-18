@@ -202,7 +202,23 @@ def update_dashboard(app_dir, agent_dir):
     else:
         roof_data = load_json(os.path.join(app_dir, "roof.json"), {})
         if "Closed" in schema or schema in ["Afternoon1", "Supper1", "RoofOpenEvening1"]:
-            hermes_summary = read_text_report(os.path.join(reports_dir, "roof_forecast_summary.txt"), "Awaiting Hermes analysis...")
+            summary_file = os.path.join(reports_dir, "roof_forecast_summary.txt")
+            hermes_summary = read_text_report(summary_file, "Awaiting Hermes analysis...")
+            
+            if os.path.exists(summary_file):
+                mtime = os.path.getmtime(summary_file)
+                forecast_time_str = datetime.fromtimestamp(mtime).strftime("%Y-%m-%d %H:%M")
+            else:
+                forecast_time_str = datetime.now().strftime("%Y-%m-%d %H:%M")
+                
+            header = f"**Observatory Forecast ({forecast_time_str}):**"
+            
+            clean_text = hermes_summary
+            if "No consecutive" in clean_text or "requirement" in clean_text or "roof will remain closed" in clean_text:
+                clean_text = "Roof likely closed all night. No clear period are expected tonight."
+                
+            clean_text = clean_text.replace("Clear sky conditions are highly unlikely.", "").replace("Clear sky conditions are highly unlikely", "").strip()
+            
             if "data" in roof_data:
                 wait_alert = ""
                 fra_text = load_json(os.path.join(app_dir, "nina_fra400.json"), {}).get("data", {}).get("text", "")
@@ -210,7 +226,7 @@ def update_dashboard(app_dir, agent_dir):
                 if "Wait (" in fra_text or "Wait (" in q75_text:
                     wait_alert = "🚨 **ALERT: Wait state forecast for tonight** 🚨\n\n"
                     
-                roof_data["data"]["details"] = f"{wait_alert}**Starfront Forecast:**\n{hermes_summary}"
+                roof_data["data"]["details"] = f"{wait_alert}{header}\n{clean_text}"
                 save_json(os.path.join(app_dir, "roof.json"), roof_data)
 
     # 5. Atmos & Forecast Cards
