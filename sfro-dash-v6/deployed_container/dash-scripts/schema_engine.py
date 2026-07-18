@@ -96,50 +96,33 @@ def evaluate_schema(app_dir="/app/app_data", agent_dir="/app/data", lat=LAT, lon
     # Rule alias
     prospect_open = roof_is_open or forecast_open
 
-    # 00:00 - 6:00
+    schema = "RoofClosedEvening1" # Fallback
     if 0 <= hour < 6:
-        if prospect_open:
-            return "RoofOpenNight1"
-        else:
-            return "RoofClosedNight1"
-            
-    # 06:00 - 9:00
+        schema = "RoofOpenNight1" if prospect_open else "RoofClosedNight1"
     elif 6 <= hour < 9:
-        if prospect_open:
-            return "RoofOpenDawn1"
-        else:
-            return "RoofClosedDawn1"
-            
-    # 09:00 - 12:00
+        schema = "RoofOpenDawn1" if prospect_open else "RoofClosedDawn1"
     elif 9 <= hour < 12:
-        if prospect_open:
-            return "RoofOpenMorning1"
-        else:
-            return "RoofClosedMorning1"
-            
-    # 12:00 - 15:00
+        schema = "RoofOpenMorning1" if prospect_open else "RoofClosedMorning1"
     elif 12 <= hour < 15:
-        if prospect_open:
-            return "RoofOpenLunch1"
-        else:
-            return "RoofClosedLunch1"
-            
-    # 15:00 - 18:00
+        schema = "RoofOpenLunch1" if prospect_open else "RoofClosedLunch1"
     elif 15 <= hour < 18:
-        return "Afternoon1"
-        
-    # 18:00 - 21:00
+        schema = "Afternoon1"
     elif 18 <= hour < 21:
-        return "Supper1"
-        
-    # 21:00 - 23:59
+        schema = "Supper1"
     elif 21 <= hour <= 23:
-        if prospect_open:
-            return "RoofOpenEvening1"
-        else:
-            return "RoofClosedEvening1"
-            
-    return "RoofClosedEvening1" # Fallback
+        schema = "RoofOpenEvening1" if prospect_open else "RoofClosedEvening1"
+
+    out_path = os.path.join(app_dir, "active_schema.json")
+    temp_out = f"{out_path}.tmp"
+    try:
+        with open(temp_out, "w") as f:
+            json.dump({"schema": schema, "updated_at": now_utc.isoformat()}, f, indent=2)
+        os.replace(temp_out, out_path)
+        print(f"Schema Engine Active: Set to {schema} at {now_utc.isoformat()}")
+    except Exception as e:
+        print(f"Error writing schema file: {e}", file=sys.stderr)
+
+    return schema
 
 def main():
     app_dir = os.environ.get("APP_DIR", "/app/app_data")

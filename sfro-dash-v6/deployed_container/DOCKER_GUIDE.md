@@ -14,7 +14,7 @@ We use a two-container Docker Compose setup:
     *   Tempest weather observer (`update_weather.py`) every 1 minute.
     *   Roof status scraper (`fetch_roof.py`) every 1 minute.
     *   Schema engine state evaluation (`schema_engine.py`) every 15 minutes.
-    *   Weather forecast compiler (`fetch_forecast.py`) every 2 hours.
+    *   Weather forecast compiler (`fetch_forecast.py`) every 30 minutes.
     *   APOD astronomy picture fetcher (`fetch_apod.py`) every 12 hours.
 
 ---

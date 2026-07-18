@@ -162,10 +162,25 @@ def update_dashboard(app_dir, agent_dir):
     if os.path.exists(os.path.join(agent_dir, "custom_75q.json")):
         save_json(os.path.join(app_dir, "75q.json"), load_json(os.path.join(agent_dir, "custom_75q.json")))
     elif active_state["75q"] == "backup":
-        txt = read_text_report(os.path.join(reports_dir, "backup.txt"), "Awaiting Backup Report...")
+        backup_file = os.path.join(reports_dir, "backup.txt")
+        txt = read_text_report(backup_file, "Awaiting Backup Report...")
         summary_txt = summarize_backup_report(txt)
+        
+        if os.path.exists(backup_file):
+            mtime = os.path.getmtime(backup_file)
+            report_dt = datetime.fromtimestamp(mtime)
+            report_date_str = report_dt.strftime("%Y-%m-%d %H:%M")
+            subtitle = f"Hermes Agent ({report_dt.strftime('%b %d, %H:%M')})"
+            if summary_txt and not "Awaiting" in summary_txt:
+                summary_txt = f"**Report Date:** {report_date_str}\n{summary_txt}"
+        else:
+            subtitle = "Hermes Agent"
+
         save_json(os.path.join(app_dir, "75q.json"), {
-            "title": "Daily Backup Volume Report", "subtitle": "Hermes Agent", "type": "text", "data": {"text": summary_txt}
+            "title": "Daily Backup Volume Report", 
+            "subtitle": subtitle, 
+            "type": "text", 
+            "data": {"text": summary_txt}
         })
     elif active_state["75q"] == "nighta":
         save_json(os.path.join(app_dir, "75q.json"), {

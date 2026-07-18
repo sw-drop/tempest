@@ -88,7 +88,8 @@ def job_weather_wandsworth():
 def job_apod():
     try:
         script = os.path.join(ROOT_DIR, 'apod', 'fetch_apod.py')
-        subprocess.run([sys.executable, script, "-o", IMAGES_DIR], check=False)
+        apod_out = os.path.join(IMAGES_DIR, "apod.jpg")
+        subprocess.run([sys.executable, script, "-o", apod_out], check=False)
     except Exception as e:
         print(f"Error in job_apod: {e}", file=sys.stderr)
 
@@ -145,9 +146,9 @@ def main():
     schedule.every(15).minutes.do(job_captures)
     schedule.every(15).minutes.do(job_rates)
     
-    # Very low frequency API jobs (to avoid bans)
-    schedule.every(2).hours.do(job_weather_starfront)
-    schedule.every(2).hours.do(job_weather_wandsworth)
+    # Low frequency API jobs
+    schedule.every(30).minutes.do(job_weather_starfront)
+    schedule.every(30).minutes.do(job_weather_wandsworth)
     schedule.every(12).hours.do(job_apod)
 
     while True:
