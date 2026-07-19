@@ -205,19 +205,22 @@ def update_dashboard(app_dir, agent_dir):
             summary_file = os.path.join(reports_dir, "roof_forecast_summary.txt")
             hermes_summary = read_text_report(summary_file, "Awaiting Hermes analysis...")
             
-            if os.path.exists(summary_file):
-                mtime = os.path.getmtime(summary_file)
-                forecast_time_str = datetime.fromtimestamp(mtime).strftime("%Y-%m-%d %H:%M")
+            if os.path.exists(schema_path):
+                updated_at_str = schema_data.get("updated_at")
+                if updated_at_str:
+                    try:
+                        dt = datetime.fromisoformat(updated_at_str.replace("Z", "+00:00"))
+                        forecast_time_str = dt.strftime("%Y-%m-%d %H:%M")
+                    except:
+                        forecast_time_str = datetime.fromtimestamp(os.path.getmtime(schema_path)).strftime("%Y-%m-%d %H:%M")
+                else:
+                    forecast_time_str = datetime.fromtimestamp(os.path.getmtime(schema_path)).strftime("%Y-%m-%d %H:%M")
             else:
                 forecast_time_str = datetime.now().strftime("%Y-%m-%d %H:%M")
                 
             header = f"**Observatory Forecast ({forecast_time_str}):**"
             
-            clean_text = hermes_summary
-            if "No consecutive" in clean_text or "requirement" in clean_text or "roof will remain closed" in clean_text:
-                clean_text = "Roof likely closed all night. No clear period are expected tonight."
-                
-            clean_text = clean_text.replace("Clear sky conditions are highly unlikely.", "").replace("Clear sky conditions are highly unlikely", "").strip()
+            clean_text = hermes_summary.strip()
             
             if "data" in roof_data:
                 wait_alert = ""
@@ -230,7 +233,18 @@ def update_dashboard(app_dir, agent_dir):
                 save_json(os.path.join(app_dir, "roof.json"), roof_data)
 
     # 5. Atmos & Forecast Cards
-    if active_state["weather"] == "wandsworth":
+    custom_loc_path = os.path.join(agent_dir, "custom_location.json")
+    custom_forecast_path = os.path.join(agent_dir, "custom_forecast.json")
+    
+    if os.path.exists(custom_forecast_path):
+        forecast_data = load_json(custom_forecast_path)
+        left_data = load_json(os.path.join(app_dir, "atmos_left.json"))
+        right_data = load_json(os.path.join(app_dir, "atmos_right.json"))
+    elif os.path.exists(custom_loc_path) or os.path.exists(os.path.join(app_dir, "forecast_custom.json")):
+        forecast_data = load_json(os.path.join(app_dir, "forecast_custom.json"))
+        left_data = load_json(os.path.join(app_dir, "atmos_custom.json"))
+        right_data = load_json(os.path.join(app_dir, "atmos_umhlanga.json"))
+    elif active_state["weather"] == "wandsworth":
         left_data = load_json(os.path.join(app_dir, "atmos_wandsworth.json"))
         right_data = load_json(os.path.join(app_dir, "atmos_umhlanga.json"))
         forecast_data = load_json(os.path.join(app_dir, "forecast_wandsworth.json"))

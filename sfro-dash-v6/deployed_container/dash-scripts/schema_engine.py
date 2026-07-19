@@ -26,14 +26,14 @@ def get_forecast_roof_prospect(lat=LAT, lon=LON):
     ts = data.get('properties', {}).get('timeseries', [])
     now_utc = datetime.now(timezone.utc)
     
-    # Define "tonight" boundaries (18:00 UTC today to 06:00 UTC tomorrow)
-    # If it's already past midnight but before 6am, "tonight" started yesterday.
+    # Define Texas "tonight" boundaries (00:00 UTC to 11:00 UTC)
+    # This maps to roughly 7:00 PM CDT to 6:00 AM CDT.
     if now_utc.hour < 12:
-        start_night = now_utc.replace(hour=18, minute=0, second=0, microsecond=0) - timedelta(days=1)
+        start_night = now_utc.replace(hour=0, minute=0, second=0, microsecond=0)
     else:
-        start_night = now_utc.replace(hour=18, minute=0, second=0, microsecond=0)
+        start_night = now_utc.replace(hour=0, minute=0, second=0, microsecond=0) + timedelta(days=1)
         
-    end_night = start_night + timedelta(hours=12)
+    end_night = start_night + timedelta(hours=11)
     
     clouds = []
     for entry in ts:
@@ -67,7 +67,7 @@ def get_actual_roof_state(roof_path):
     try:
         with open(roof_path, 'r') as f:
             r = json.load(f)
-            return r.get("data", {}).get("status", "").upper() == "OPEN"
+            return "OPEN" in r.get("title", "").upper()
     except:
         return False
 
